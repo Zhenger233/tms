@@ -5,25 +5,37 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "electron:build": "vue-cli-service electron:build",
+    "es": "vue-cli-service electron:serve",
+    "electron:serve": "vue-cli-service electron:serve",
+    "postinstall": "electron-builder install-app-deps",
+    "postuninstall": "electron-builder install-app-deps"
   },
+  "main": "background.js",
   "dependencies": {
-    "core-js": "^3.12.1",
-    "vue": "^3.0.11"
+    "core-js": "~3.12.1",
+    "ffi-napi": "^2.5.0",
+    "vue": "~3.0.11",
+    "vue-loader-v16": "^16.0.0-beta.5.4"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.5.13",
-    "@vue/cli-plugin-eslint": "^4.5.13",
-    "@vue/cli-service": "^4.5.13",
-    "@vue/compiler-sfc": "^3.0.11",
-    "@vue/eslint-config-standard": "^5.1.2",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.8.0",
-    "eslint-plugin-import": "^2.23.3",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.3.1",
-    "eslint-plugin-standard": "^4.1.0",
-    "eslint-plugin-vue": "^7.9.0"
+    "@vue/cli-plugin-babel": "~4.5.13",
+    "@vue/cli-plugin-eslint": "~4.5.13",
+    "@vue/cli-service": "~4.5.13",
+    "@vue/compiler-sfc": "~3.0.11",
+    "@vue/eslint-config-standard": "~5.1.2",
+    "babel-eslint": "~10.1.0",
+    "electron": "~10.4.6",
+    "electron-devtools-installer": "~3.2.0",
+    "electron-rebuild": "^2.3.5",
+    "eslint": "~6.8.0",
+    "eslint-plugin-import": "~2.23.3",
+    "eslint-plugin-node": "~11.1.0",
+    "eslint-plugin-promise": "~4.3.1",
+    "eslint-plugin-standard": "~4.1.0",
+    "eslint-plugin-vue": "~7.9.0",
+    "vue-cli-plugin-electron-builder": "~2.0.0"
   },
   "eslintConfig": {
     "root": true,
@@ -37,7 +49,16 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "no-eval": [
+        0,
+        {
+          "allowIndirect": true,
+          "allowDirect": true
+        }
+      ],
+      "no-unused-vars": 0
+    }
   },
   "browserslist": [
     "> 1%",
