@@ -11,8 +11,7 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 app.allowRendererProcessReuse = false
-process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true'
-
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true
 async function createWindow () {
   // Create the browser window.
   const win = new BrowserWindow({
