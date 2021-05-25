@@ -1,13 +1,16 @@
 <template>
   <div class="item">
-    <p>
-      <span v-show="!isActive" v-on:click="activeItem">{{ item }}</span>
+    <el-row>
+      <el-col :span="20">
+      <!-- <span v-show="!isActive" v-on:click="activeItem">{{ item }}</span>
       <span v-show="isActive">
         <input v-model="content" v-on:blur="inactiveItem" type="text" />
-      </span>
-      <span v-on:click="$emit('deleteItem', index)">Delete</span>
-      <span v-on:click="$emit('runItem', index)">Run</span>
-    </p>
+      </span> -->
+        <el-button >{{item}}</el-button>
+      </el-col>
+      <el-col :span="2"><el-button v-on:click="$emit('deleteItem', index)">Delete</el-button></el-col>
+      <el-col :span="2"><el-button type="primary" v-on:click="$emit('runItem', index)">Run</el-button></el-col>
+    </el-row>
   </div>
 </template>
 

@@ -1,19 +1,28 @@
 <template>
   <div class="home">
-    <div class="input-part">
-
-      <button v-on:click="openFile">open</button>
-      <input v-model="words" type="text" />
-      <button v-on:click="cleanInput"> clean</button>
-      <button v-on:click="insertItem"> insert</button>
-    </div>
+    <el-row>
+      <el-col :span="2"><el-button v-on:click="openFile">open</el-button></el-col>
+      <el-col :span="18"><el-input v-model="words" type="text" /></el-col>
+      <el-col :span="2"><el-button v-on:click="cleanInput"> clean</el-button></el-col>
+      <el-col :span="2"><el-button type="primary" v-on:click="showFun"> add</el-button></el-col>
+    </el-row>
+    <el-dropdown split-button>
+      <span class="el-dropdown-link">
+        add function:
+      </span>
+      <template #dropdown>
+        <el-dropdown-menu v-for="(item, index) in funlist" :key="index">
+          <el-dropdown-item @click="insertItem(item)">{{item}}</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
     <ul>
       <li v-for="(item, index) in list" v-bind:key="index">
         <TodoListItem
-          v-bind:item="item"
+          v-bind:item="item[0] + ' ' + item[1]"
           v-bind:index="index"
-          v-on:deleteItem="deleteItem"
-          v-on:runItem="runItem"
+          v-on:deleteItem="deleteItem(index)"
+          v-on:runItem="runItem(item)"
           v-on:modifyItem="modifyItem"
         />
       </li>
@@ -52,9 +61,7 @@ export default {
     cleanInput () {
       this.words = ''
     },
-    insertItem () {
-      // this.list.push(this.words)
-      // test run
+    showFun () {
       const w = this.words
       console.log('insert:\t', w)
       const execSync = window.require('child_process').execSync
@@ -62,11 +69,14 @@ export default {
       const ans = output.toString()
       const tempList = JSON.parse(ans)
       console.log('list:\t', tempList)
+      this.funlist = []
       for (const p of tempList) {
-        this.list.push(this.words + ' ' + p[1])
-        this.dlllist.push(String(this.words))
+        this.funlist.push(p[1])
         console.log('insert ', this.list.length)
       }
+    },
+    insertItem (item) {
+      this.list.push([this.words, item])
     },
     deleteItem (index) {
       this.list.splice(index, 1)
@@ -75,15 +85,25 @@ export default {
     modifyItem (newContent, index) {
       this.list.splice(index, 1, newContent)
     },
-    runItem (index) {
-      console.log('I\'m here:\t', this.list[index])
+    runItem (item) {
+      console.log('I\'m here:\t', item)
       const ffi = window.require('ffi-napi')
       const ref = window.require('ref-napi')
-      const f1 = 'hi'
+      const funName = item[1]
       console.log('require ok')
-      const dllstr = this.dlllist[index]
-      ffi.Library('d:\\add.dll', { hi: [ref.types.void, []] }).hi()
-      eval('alert(ffi.Library(dllstr,  { add: [ref.types.int, [ref.types.int]] }).add(5))')
+      const dllstr = item[0]
+      switch (funName) {
+        case 'hi':
+          console.log('answer:\t', window.require('child_process').execSync('d:\\rundll32.exe ' + 'd:\\add.dll hi').toString())
+          break
+        default:
+          console.log('console.log(ffi.Library(\'' + dllstr + '\', { ' + funName + ': [ref.types.void, [ref.types.int]] }).' + funName + '(1))')
+          eval('console.log(ffi.Library(dllstr, { ' + funName + ': [ref.types.int, [ref.types.int]] }).' + funName + '(1))')
+          break
+      }
+      // const dll = ffi.Library(dllstr, { [funName]: [ref.types.void, []] })
+      // eval('dll.' + funName + '()')
+      // eval('alert(ffi.Library(dllstr,  { add: [ref.types.int, [ref.types.int]] }).add(5))')
       // const paramsobj = { [f1]: [ref.types.void, []] }
       // console.log('run:\t', dllstr, paramsobj)
       // const dll = ffi.Library(dllstr, paramsobj)
@@ -96,6 +116,9 @@ export default {
       // const output = execSync('d:\\rundll32.exe ' + this.list[index] + ' 1')
       // const ans = output.toString()
       // console.log('answer:\t', ans)
+    },
+    handleCommand (command) {
+      this.$message('click on item ' + command)
     }
   }
 }
