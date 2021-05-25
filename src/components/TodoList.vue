@@ -1,52 +1,128 @@
 <template>
   <div class="home">
     <el-row>
-      <el-col :span="2"><el-button v-on:click="openFile">open</el-button></el-col>
-      <el-col :span="18"><el-input v-model="words" type="text" /></el-col>
-      <el-col :span="2"><el-button v-on:click="cleanInput"> clean</el-button></el-col>
-      <el-col :span="2"><el-button type="primary" v-on:click="showFun"> add</el-button></el-col>
+      <el-col :span="2"><el-button type="primary" v-on:click="openFile">Open</el-button></el-col>
+      <el-col :span="10"><el-input v-model="words" v-on:keyup.enter="showFun" type="text" /></el-col>
+      <el-col :span="2"><el-button v-on:click="cleanInput">Clean</el-button></el-col>
+      <el-col :span="4">
+        <el-dropdown split-button>
+          <span class="el-dropdown-link">
+            {{typeList[typeIndex]}}
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu v-for="(item, index) in typeList" :key="index">
+              <el-dropdown-item @click="changeType(index)">{{item}}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </el-col>
+      <el-col :span="6">
+        <el-dropdown split-button>
+          <span class="el-dropdown-link">
+            {{funList[funIndex]}}
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu v-for="(item, index) in funList" :key="index">
+              <el-dropdown-item @click="insertItem(item)">{{item}}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </el-col>
     </el-row>
-    <el-dropdown split-button>
-      <span class="el-dropdown-link">
-        add function:
-      </span>
-      <template #dropdown>
-        <el-dropdown-menu v-for="(item, index) in funlist" :key="index">
-          <el-dropdown-item @click="insertItem(item)">{{item}}</el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
-    <ul>
-      <li v-for="(item, index) in list" v-bind:key="index">
-        <TodoListItem
-          v-bind:item="item[0] + ' ' + item[1]"
-          v-bind:index="index"
-          v-on:deleteItem="deleteItem(index)"
-          v-on:runItem="runItem(item)"
-          v-on:modifyItem="modifyItem"
-        />
-      </li>
-    </ul>
+
+    <el-table
+      ref="multipleTable"
+      :data="seqData"
+      tooltip-effect="dark"
+      style="width: 100%"
+      @selection-change="handleSelectionChange">
+      <el-table-column
+        type="selection"
+        width="55">
+      </el-table-column>
+      <el-table-column
+        prop="path"
+        label="path"
+        width="120">
+      </el-table-column>
+      <el-table-column
+        prop="func"
+        label="func"
+        width="120">
+      </el-table-column>
+      <el-table-column
+        prop="type"
+        label="type"
+        width="120">
+      </el-table-column>
+      <el-table-column
+        label="result"
+        show-overflow-tooltip>
+      </el-table-column>
+    </el-table>
+
+    <div style="margin-top: 20px">
+      <el-button @click="toggleSelection(seqData)">Toggle</el-button>
+      <el-button @click="deleteItem">Delete</el-button>
+    </div>
+<!--
+    <li v-for="(item, index) in list" v-bind:key="index">
+      <TodoListItem
+        v-bind:item="item[0] + ' ' + item[1]"
+        v-bind:index="index"
+        v-on:deleteItem="deleteItem(index)"
+        v-on:runItem="runItem(item)"
+        v-on:modifyItem="modifyItem"
+      />
+    </li> -->
   </div>
 </template>
 
 <script>
-import TodoListItem from '@/components/TodoListItem.vue'
+// import TodoListItem from '@/components/TodoListItem.vue'
 const { dialog } = window.require('electron').remote
 
 export default {
   name: 'TodoList',
-  components: {
-    TodoListItem
-  },
+  // components: {
+  //   TodoListItem
+  // },
   data () {
     return {
       words: 'd:\\add.dll',
+      typeList: [
+        'Call',
+        'Pass-Fail',
+        'Str-Value',
+        'Num-Limit',
+        'M-Num-Limit'
+      ],
+      typeIndex: 0,
       list: [],
-      dlllist: []
+      funList: ['Select Function'],
+      funIndex: 0,
+      seqData: [],
+      multipleSelection: []
     }
   },
   methods: {
+    toggleSelection (rows) {
+      console.log('toggle')
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row)
+        })
+      } else {
+        this.$refs.multipleTable.clearSelection()
+      }
+    },
+    changeType (index) {
+      this.typeIndex = index
+    },
+    handleSelectionChange (val) {
+      console.log(val)
+      this.multipleSelection = val
+    },
     openFile () {
       dialog.showOpenDialog({
         properties: ['openFile']
@@ -54,6 +130,7 @@ export default {
         // console.log(result.canceled)
         console.log('open:\t', result.filePaths)
         this.words = result.filePaths
+        this.showFun()
       }).catch(err => {
         console.log(err)
       })
@@ -69,18 +146,29 @@ export default {
       const ans = output.toString()
       const tempList = JSON.parse(ans)
       console.log('list:\t', tempList)
-      this.funlist = []
+      this.funList = []
       for (const p of tempList) {
-        this.funlist.push(p[1])
-        console.log('insert ', this.list.length)
+        this.funList.push(p[1])
+        console.log('insert ', this.funList.length)
       }
     },
     insertItem (item) {
       this.list.push([this.words, item])
+      this.seqData.push({
+        id: this.words + item + this.typeList[this.typeIndex] + new Date().getTime(),
+        path: this.words,
+        func: item,
+        type: this.typeList[this.typeIndex]
+      })
     },
-    deleteItem (index) {
-      this.list.splice(index, 1)
-      console.log('delete', this.list.length)
+    deleteItem () {
+      const idList = this.multipleSelection.map((i) => i.id)
+      idList.forEach((id) => {
+        console.log(id)
+        this.seqData = this.seqData.filter((item) => item.id !== id)
+      })
+      // this.list.splice(index, 1)
+      // console.log('delete', this.list.length)
     },
     modifyItem (newContent, index) {
       this.list.splice(index, 1, newContent)
