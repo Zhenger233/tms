@@ -119,17 +119,22 @@ export default {
           hi: ['void', []],
           add: ['int', ['int']],
           str: ['string', []],
-          strc: ['void', ['string']],
+          strc: ['void', ['char*']],
           tests: ['void', ['short*']],
-          testpf: ['void', ['short*', 'long*', 'string', 'short*']]
+          testpf: ['void', ['short*', 'long*', 'string', 'short*']],
+          testmnl: ['void', ['short*', 'long*', 'string', 'int*', 'long*']]
         })
         var shorta = ref.alloc('short')
         var longa = ref.alloc('long')
-        var stringa = ''
-        var shortb = ref.alloc('short')
-        testFun.testpf(shorta, longa, stringa, shortb)
-        console.log(shorta.deref(), longa.deref(), stringa, shortb.deref())
-        testFun = undefined
+        var stringa = Buffer.alloc(1024)
+        var stringb = Buffer.alloc(1024)
+        var inta = ref.alloc('int')
+        var la = []
+        testFun.strc(stringb)
+        console.log('sb:', ref.readCString(stringb, 0))
+        // testFun.testmnl(shorta, longa, stringa, inta, la)
+        // console.log(shorta.deref(), longa.deref(), stringa, inta.deref(), la)
+        // testFun = undefined
       } catch (err) {
         console.log('testerr:', err)
       }

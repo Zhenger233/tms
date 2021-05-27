@@ -48,14 +48,14 @@ __declspec(dllexport) void testpf(short* errOccurred, long* errCode, char* errMs
 const ffi = require('ffi-napi')
 const ref = require('ref-napi')
 var testFun = ffi.Library('D:\\hi.dll', {
-  testpf: ['void', ['short*', 'long*', 'string', 'short*']]
+  testpf: ['void', ['short*', 'long*', 'char*', 'short*']]
 })
 var shorta = ref.alloc('short')
 var longa = ref.alloc('long')
-var stringa = ''
+var stringa = Buffer.alloc(1024)
 var shortb = ref.alloc('short')
 testFun.testpf(shorta, longa, stringa, shortb)
-console.log(shorta.deref(), longa.deref(), stringa, shortb.deref())
+console.log(shorta.deref(), longa.deref(), ref.readCString(stringa, 0), shortb.deref())
 testFun = undefined
 ```
 
