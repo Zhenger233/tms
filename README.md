@@ -38,6 +38,27 @@ enableRemoteModule: true,
 contextIsolation: false
 ```
 
+### DLL edit and call
+
+```c
+__declspec(dllexport) void testpf(short* errOccurred, long* errCode, char* errMsg, short* ans);
+```
+
+```javascript
+const ffi = require('ffi-napi')
+const ref = require('ref-napi')
+var testFun = ffi.Library('D:\\hi.dll', {
+  testpf: ['void', ['short*', 'long*', 'string', 'short*']]
+})
+var shorta = ref.alloc('short')
+var longa = ref.alloc('long')
+var stringa = ''
+var shortb = ref.alloc('short')
+testFun.testpf(shorta, longa, stringa, shortb)
+console.log(shorta.deref(), longa.deref(), stringa, shortb.deref())
+testFun = undefined
+```
+
 ### Miscellaneous
 
 eslint config
@@ -47,3 +68,5 @@ components import export
 element use
 
 table select
+
+dll edit and call

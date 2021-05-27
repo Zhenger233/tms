@@ -64,6 +64,7 @@
     <div style="margin-top: 20px">
       <el-button @click="toggleSelection(seqData)">Toggle</el-button>
       <el-button @click="deleteItem">Delete</el-button>
+      <el-button @click="test">Test</el-button>
     </div>
 <!--
     <li v-for="(item, index) in list" v-bind:key="index">
@@ -106,8 +107,35 @@ export default {
     }
   },
   methods: {
+    test () {
+      const require = window.require
+      const ffi = require('ffi-napi')
+      const ref = require('ref-napi')
+      console.log('testing...')
+      try {
+        const ans = ffi.Library('D:\\project\\vscjs\\ts\\test\\test\\tms\\add.dll', { hi: [ref.types.void, []], add: ['int', ['int']] }).add(3)
+        console.log(ans)
+        var testFun = ffi.Library('D:\\hi.dll', {
+          hi: ['void', []],
+          add: ['int', ['int']],
+          str: ['string', []],
+          strc: ['void', ['string']],
+          tests: ['void', ['short*']],
+          testpf: ['void', ['short*', 'long*', 'string', 'short*']]
+        })
+        var shorta = ref.alloc('short')
+        var longa = ref.alloc('long')
+        var stringa = ''
+        var shortb = ref.alloc('short')
+        testFun.testpf(shorta, longa, stringa, shortb)
+        console.log(shorta.deref(), longa.deref(), stringa, shortb.deref())
+        testFun = undefined
+      } catch (err) {
+        console.log('testerr:', err)
+      }
+    },
     toggleSelection (rows) {
-      console.log('toggle')
+      console.log('toggle', rows.length)
       if (rows) {
         rows.forEach(row => {
           this.$refs.multipleTable.toggleRowSelection(row)
@@ -120,7 +148,7 @@ export default {
       this.typeIndex = index
     },
     handleSelectionChange (val) {
-      console.log(val)
+      console.log(val.length)
       this.multipleSelection = val
     },
     openFile () {
