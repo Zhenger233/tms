@@ -41,21 +41,24 @@ contextIsolation: false
 ### DLL edit and call
 
 ```c
-__declspec(dllexport) void testpf(short* errOccurred, long* errCode, char* errMsg, short* ans);
+__declspec(dllexport) void testmnl(short* errOccurred, long* errCode, char* errMsg, int* n, long* array);
 ```
 
 ```javascript
 const ffi = require('ffi-napi')
 const ref = require('ref-napi')
+const ArrayType = require('ref-array-napi')
+var LongArray = ArrayType('long')
 var testFun = ffi.Library('D:\\hi.dll', {
-  testpf: ['void', ['short*', 'long*', 'char*', 'short*']]
+  testmnl: ['void', ['short*', 'long*', 'char*', 'int*', LongArray]]
 })
 var shorta = ref.alloc('short')
 var longa = ref.alloc('long')
 var stringa = Buffer.alloc(1024)
-var shortb = ref.alloc('short')
-testFun.testpf(shorta, longa, stringa, shortb)
-console.log(shorta.deref(), longa.deref(), ref.readCString(stringa, 0), shortb.deref())
+var inta = ref.alloc('int')
+var longarraya = new LongArray(5)
+testFun.testmnl(shorta, longa, stringa, inta, longarraya)
+console.log(shorta.deref(), longa.deref(), ref.readCString(stringa, 0), inta.deref(), longarraya)
 testFun = undefined
 ```
 

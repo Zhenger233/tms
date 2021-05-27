@@ -111,6 +111,8 @@ export default {
       const require = window.require
       const ffi = require('ffi-napi')
       const ref = require('ref-napi')
+      const ArrayType = require('ref-array-napi')
+      var LongArray = ArrayType('long')
       console.log('testing...')
       try {
         const ans = ffi.Library('D:\\project\\vscjs\\ts\\test\\test\\tms\\add.dll', { hi: [ref.types.void, []], add: ['int', ['int']] }).add(3)
@@ -122,21 +124,18 @@ export default {
           strc: ['void', ['char*']],
           tests: ['void', ['short*']],
           testpf: ['void', ['short*', 'long*', 'string', 'short*']],
-          testmnl: ['void', ['short*', 'long*', 'string', 'int*', 'long*']]
+          testmnl: ['void', ['short*', 'long*', 'char*', 'int*', LongArray]]
         })
         var shorta = ref.alloc('short')
         var longa = ref.alloc('long')
         var stringa = Buffer.alloc(1024)
-        var stringb = Buffer.alloc(1024)
         var inta = ref.alloc('int')
-        var la = []
-        testFun.strc(stringb)
-        console.log('sb:', ref.readCString(stringb, 0))
-        // testFun.testmnl(shorta, longa, stringa, inta, la)
-        // console.log(shorta.deref(), longa.deref(), stringa, inta.deref(), la)
+        var longarraya = new LongArray(5)
+        testFun.testmnl(shorta, longa, stringa, inta, longarraya)
+        console.log(shorta.deref(), longa.deref(), ref.readCString(stringa, 0), inta.deref(), longarraya)
         // testFun = undefined
       } catch (err) {
-        console.log('testerr:', err)
+        console.log('testerr:\n', err)
       }
     },
     toggleSelection (rows) {
