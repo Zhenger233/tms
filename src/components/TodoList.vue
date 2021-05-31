@@ -1,9 +1,9 @@
 <template>
   <div class="home">
     <el-row>
-      <el-col :span="2"><el-button type="primary" v-on:click="openFile">Open</el-button></el-col>
-      <el-col :span="10"><el-input v-model="words" v-on:keyup.enter="showFun" type="text" /></el-col>
-      <el-col :span="2"><el-button v-on:click="cleanInput">Clean</el-button></el-col>
+      <el-col :span="3"><el-button type="primary" v-on:click="openFile">Open</el-button></el-col>
+      <el-col :span="7"><el-input v-model="words" v-on:keyup.enter="showFun" type="text" /></el-col>
+      <el-col :span="3"><el-button v-on:click="cleanInput">Clean</el-button></el-col>
       <el-col :span="4">
         <el-dropdown split-button>
           <span class="el-dropdown-link">
@@ -16,7 +16,7 @@
           </template>
         </el-dropdown>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="7">
         <el-dropdown split-button>
           <span class="el-dropdown-link">
             {{funList[funIndex]}}
@@ -56,6 +56,14 @@
         width="120">
       </el-table-column>
       <el-table-column
+        prop="param"
+        label="param"
+        width="120">
+        <template #default="scope">
+          <el-input v-model="funParam" v-on:keyup.enter="scope.row.param=funParam" type="text" />
+        </template>
+      </el-table-column>
+      <el-table-column
         label="result"
         show-overflow-tooltip>
       </el-table-column>
@@ -65,6 +73,7 @@
       <el-button @click="toggleSelection(seqData)">Toggle</el-button>
       <el-button @click="deleteItem">Delete</el-button>
       <el-button @click="test">Test</el-button>
+      <el-button @click="run">Run</el-button>
     </div>
 <!--
     <li v-for="(item, index) in list" v-bind:key="index">
@@ -81,16 +90,19 @@
 
 <script>
 // import TodoListItem from '@/components/TodoListItem.vue'
-const { dialog } = window.require('electron').remote
-
+const require = window.require
+const { dialog } = require('electron').remote
+const ffi = require('ffi-napi')
+const ref = require('ref-napi')
+const ArrayType = require('ref-array-napi')
+var LongArray = ArrayType('long')
+const { ipcRenderer } = require('electron')
 export default {
   name: 'TodoList',
-  // components: {
-  //   TodoListItem
-  // },
   data () {
     return {
-      words: 'd:\\add.dll',
+      words: 'd:\\hi.dll',
+      funParam: 'a',
       typeList: [
         'Call',
         'Pass-Fail',
@@ -100,39 +112,38 @@ export default {
       ],
       typeIndex: 0,
       list: [],
-      funList: ['Select Function'],
+      funList: ['Select'],
       funIndex: 0,
       seqData: [],
       multipleSelection: []
     }
   },
   methods: {
+    run () {
+      console.log(this.multipleSelection.map(i => i))
+    },
     test () {
-      const require = window.require
-      const ffi = require('ffi-napi')
-      const ref = require('ref-napi')
-      const ArrayType = require('ref-array-napi')
-      var LongArray = ArrayType('long')
       console.log('testing...')
       try {
-        const ans = ffi.Library('D:\\project\\vscjs\\ts\\test\\test\\tms\\add.dll', { hi: [ref.types.void, []], add: ['int', ['int']] }).add(3)
-        console.log(ans)
-        var testFun = ffi.Library('D:\\hi.dll', {
-          hi: ['void', []],
-          add: ['int', ['int']],
-          str: ['string', []],
-          strc: ['void', ['char*']],
-          tests: ['void', ['short*']],
-          testpf: ['void', ['short*', 'long*', 'string', 'short*']],
-          testmnl: ['void', ['short*', 'long*', 'char*', 'int*', LongArray]]
-        })
-        var shorta = ref.alloc('short')
-        var longa = ref.alloc('long')
-        var stringa = Buffer.alloc(1024)
-        var inta = ref.alloc('int')
-        var longarraya = new LongArray(5)
-        testFun.testmnl(shorta, longa, stringa, inta, longarraya)
-        console.log(shorta.deref(), longa.deref(), ref.readCString(stringa, 0), inta.deref(), longarraya)
+        console.log(ipcRenderer.sendSync('synchronous-message', 'ping')) // prints "pong"
+        // const ans = ffi.Library('D:\\project\\vscjs\\ts\\test\\test\\tms\\add.dll', { hi: [ref.types.void, []], add: ['int', ['int']] }).add(3)
+        // console.log(ans)
+        // var testFun = ffi.Library('D:\\hi.dll', {
+        //   hi: ['void', []],
+        //   add: ['int', ['int']],
+        //   str: ['string', []],
+        //   strc: ['void', ['char*']],
+        //   tests: ['void', ['short*']],
+        //   testpf: ['void', ['short*', 'long*', 'string', 'short*']],
+        //   testmnl: ['void', ['short*', 'long*', 'char*', 'int*', LongArray]]
+        // })
+        // var shorta = ref.alloc('short')
+        // var longa = ref.alloc('long')
+        // var stringa = Buffer.alloc(1024)
+        // var inta = ref.alloc('int')
+        // var longarraya = new LongArray(5)
+        // testFun.testmnl(shorta, longa, stringa, inta, longarraya)
+        // console.log(shorta.deref(), longa.deref(), ref.readCString(stringa, 0), inta.deref(), longarraya)
         // testFun = undefined
       } catch (err) {
         console.log('testerr:\n', err)
@@ -152,7 +163,7 @@ export default {
       this.typeIndex = index
     },
     handleSelectionChange (val) {
-      console.log(val.length)
+      console.log('select change:', val.length)
       this.multipleSelection = val
     },
     openFile () {
@@ -164,11 +175,12 @@ export default {
         this.words = result.filePaths
         this.showFun()
       }).catch(err => {
-        console.log(err)
+        console.log('open file err:', err)
       })
     },
     cleanInput () {
       this.words = ''
+      this.funList = []
     },
     showFun () {
       const w = this.words
@@ -181,8 +193,8 @@ export default {
       this.funList = []
       for (const p of tempList) {
         this.funList.push(p[1])
-        console.log('insert ', this.funList.length)
       }
+      console.log('insert ', this.funList.length)
     },
     insertItem (item) {
       this.list.push([this.words, item])
@@ -190,7 +202,9 @@ export default {
         id: this.words + item + this.typeList[this.typeIndex] + new Date().getTime(),
         path: this.words,
         func: item,
-        type: this.typeList[this.typeIndex]
+        type: this.typeList[this.typeIndex],
+        param: '',
+        result: []
       })
     },
     deleteItem () {
@@ -201,9 +215,6 @@ export default {
       })
       // this.list.splice(index, 1)
       // console.log('delete', this.list.length)
-    },
-    modifyItem (newContent, index) {
-      this.list.splice(index, 1, newContent)
     },
     runItem (item) {
       console.log('I\'m here:\t', item)
@@ -236,10 +247,10 @@ export default {
       // const output = execSync('d:\\rundll32.exe ' + this.list[index] + ' 1')
       // const ans = output.toString()
       // console.log('answer:\t', ans)
-    },
-    handleCommand (command) {
-      this.$message('click on item ' + command)
     }
   }
 }
+ipcRenderer.on('menu', (event, ...arg) => {
+  console.log(...arg) // prints "pong"
+})
 </script>

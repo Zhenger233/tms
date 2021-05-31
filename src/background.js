@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { app, protocol, BrowserWindow, Menu, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -12,17 +12,14 @@ protocol.registerSchemesAsPrivileged([
 
 app.allowRendererProcessReuse = false
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true
+
+var win
 async function createWindow () {
   // Create the browser window.
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-
-      // Use pluginOptions.nodeIntegration, leave this alone
-      // See nklayman.github.io/vue-cli-plugin-electron-builder/guide/security.html#node-integration for more info
-      // nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
-      // contextIsolation: !process.env.ELECTRON_NODE_INTEGRATION
       webSecurity: false,
       nodeIntegration: true,
       enableRemoteModule: true,
@@ -85,3 +82,121 @@ if (isDevelopment) {
     })
   }
 }
+
+const template = [
+  // { role: 'fileMenu' }
+  {
+    label: 'File',
+    submenu: [
+      { label: 'Open' },
+      { label: 'Save' },
+      { label: 'Save as...' },
+      { role: 'quit' }
+    ]
+  },
+  // { role: 'editMenu' }
+  {
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'delete' },
+      { type: 'separator' },
+      { role: 'selectAll' }
+    ]
+  },
+  // { role: 'viewMenu' }
+  {
+    label: 'View',
+    submenu: [
+      { role: 'reload' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
+      { type: 'separator' },
+      { role: 'resetZoom' },
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' }
+    ]
+  },
+  // { role: 'windowMenu' }
+  {
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' },
+      { role: 'zoom' },
+      { role: 'close' }
+    ]
+  },
+  {
+    label: 'Sequence',
+    submenu: [
+      {
+        label: 'Insert',
+        submenu: [
+          {
+            label: 'Dll',
+            click: () => { win.webContents.send('menu', 'SequenceDll') }
+          },
+          {
+            label: 'Flow',
+            click: () => { win.webContents.send('menu', 'SequenceFlow') }
+          },
+          {
+            label: 'Other',
+            click: () => { win.webContents.send('menu', 'SequenceOther') }
+          }
+        ]
+      },
+      {
+        label: 'Combinate',
+        click: () => { win.webContents.send('menu', 'SequenceCombination') }
+      }
+    ]
+  },
+  {
+    label: 'Run',
+    submenu: [
+      {
+        label: 'Step',
+        click: () => { win.webContents.send('menu', 'RunStep') }
+      },
+      {
+        label: 'All(selected)',
+        click: () => { win.webContents.send('menu', 'RunSelected') }
+      },
+      {
+        label: 'All',
+        click: () => { win.webContents.send('menu', 'RunAll') }
+      }
+    ]
+  },
+  {
+    role: 'help',
+    submenu: [
+      {
+        label: 'Learn More',
+        click: async () => {
+          const { shell } = require('electron')
+          await shell.openExternal('https://electronjs.org')
+        }
+      },
+      {
+        label: 'About',
+        click: () => { win.webContents.send('menu', 'About') }
+      }
+    ]
+  }
+]
+
+ipcMain.on('synchronous-message', (event, arg) => {
+  console.log(arg) // prints "ping"
+  event.returnValue = 'pong'
+})
+const menu = Menu.buildFromTemplate(template)
+Menu.setApplicationMenu(menu)
