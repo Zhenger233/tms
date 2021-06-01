@@ -69,7 +69,8 @@
         }
       ],
       "no-unused-vars": 0,
-      "no-unused-components": 0
+      "no-unused-components": 0,
+      "ignoreReadBeforeAssign": true
     }
   },
   "browserslist": [

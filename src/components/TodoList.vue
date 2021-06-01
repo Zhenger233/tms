@@ -60,10 +60,11 @@
         label="param"
         width="120">
         <template #default="scope">
-          <el-input v-model="funParam" v-on:keyup.enter="scope.row.param=funParam" type="text" />
+          <el-input v-model="scope.row.param" type="text" />
         </template>
       </el-table-column>
       <el-table-column
+        prop="result"
         label="result"
         show-overflow-tooltip>
       </el-table-column>
@@ -75,16 +76,6 @@
       <el-button @click="test">Test</el-button>
       <el-button @click="run">Run</el-button>
     </div>
-<!--
-    <li v-for="(item, index) in list" v-bind:key="index">
-      <TodoListItem
-        v-bind:item="item[0] + ' ' + item[1]"
-        v-bind:index="index"
-        v-on:deleteItem="deleteItem(index)"
-        v-on:runItem="runItem(item)"
-        v-on:modifyItem="modifyItem"
-      />
-    </li> -->
   </div>
 </template>
 
@@ -96,19 +87,23 @@ const ffi = require('ffi-napi')
 const ref = require('ref-napi')
 const ArrayType = require('ref-array-napi')
 var LongArray = ArrayType('long')
+var DoubleArray = ArrayType('double')
 const { ipcRenderer } = require('electron')
+// const execSync = require('child_process').execSync
 export default {
   name: 'TodoList',
   data () {
     return {
       words: 'd:\\hi.dll',
-      funParam: 'a',
+      funParam: '',
       typeList: [
         'Call',
         'Pass-Fail',
         'Str-Value',
-        'Num-Limit',
-        'M-Num-Limit'
+        'Num-Lim-L',
+        'Num-Lim-D',
+        'M-Num-Lim-L',
+        'M-Num-Lim-D'
       ],
       typeIndex: 0,
       list: [],
@@ -120,12 +115,103 @@ export default {
   },
   methods: {
     run () {
-      console.log(this.multipleSelection.map(i => i))
+      for (const item of this.multipleSelection) {
+        console.log(item)
+        // item: type, path, func, param, result, err
+        switch (item.type) {
+          case 'Call': {
+            const f = ffi.Library(item.path, {
+              [item.func]: ['void', ['short*', 'int*', 'char*']]
+            })
+            const shorta = ref.alloc('short')
+            const inta = ref.alloc('int')
+            const stringa = Buffer.alloc(1024)
+            f[item.func](shorta, inta, stringa)
+            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa)]
+            break
+          }
+          case 'Pass-Fail': {
+            const f = ffi.Library(item.path, {
+              [item.func]: ['void', ['short*', 'int*', 'char*', 'short*']]
+            })
+            const shorta = ref.alloc('short')
+            const inta = ref.alloc('int')
+            const stringa = Buffer.alloc(1024)
+            const shortb = ref.alloc('short')
+            f[item.func](shorta, inta, stringa, shortb)
+            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), shortb.deref()]
+            break
+          }
+          case 'Str-Value': {
+            const f = ffi.Library(item.path, {
+              [item.func]: ['void', ['short*', 'int*', 'char*', 'char*']]
+            })
+            const shorta = ref.alloc('short')
+            const inta = ref.alloc('int')
+            const stringa = Buffer.alloc(1024)
+            const stringb = Buffer.alloc(1024)
+            f[item.func](shorta, inta, stringa, stringb)
+            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), ref.readCString(stringb)]
+            break
+          }
+          case 'Num-Lim-L': {
+            const f = ffi.Library(item.path, {
+              [item.func]: ['void', ['short*', 'int*', 'char*', 'long*']]
+            })
+            const shorta = ref.alloc('short')
+            const inta = ref.alloc('int')
+            const stringa = Buffer.alloc(1024)
+            const longa = ref.alloc('long')
+            f[item.func](shorta, inta, stringa, longa)
+            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), longa.deref()]
+            break
+          }
+          case 'Num-Lim-D': {
+            const f = ffi.Library(item.path, {
+              [item.func]: ['void', ['short*', 'int*', 'char*', 'double*']]
+            })
+            const shorta = ref.alloc('short')
+            const inta = ref.alloc('int')
+            const stringa = Buffer.alloc(1024)
+            const doublea = ref.alloc('double')
+            f[item.func](shorta, inta, stringa, doublea)
+            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), doublea.deref()]
+            break
+          }
+          case 'M-Num-Lim-L': {
+            const f = ffi.Library(item.path, {
+              [item.func]: ['void', ['short*', 'int*', 'char*', 'int*', LongArray]]
+            })
+            const shorta = ref.alloc('short')
+            const inta = ref.alloc('int')
+            const stringa = Buffer.alloc(1024)
+            const intb = ref.alloc('int')
+            const longarraya = new LongArray(10)
+            f[item.func](shorta, inta, stringa, intb, longarraya)
+            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), intb.deref(), longarraya.toArray().slice(0, intb.deref())]
+            break
+          }
+          case 'M-Num-Lim-D': {
+            const f = ffi.Library(item.path, {
+              [item.func]: ['void', ['short*', 'int*', 'char*', 'int*', DoubleArray]]
+            })
+            const shorta = ref.alloc('short')
+            const inta = ref.alloc('int')
+            const stringa = Buffer.alloc(1024)
+            const intb = ref.alloc('int')
+            const doublearraya = new DoubleArray(10)
+            f[item.func](shorta, inta, stringa, intb, doublearraya)
+            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), intb.deref(), doublearraya.toArray().slice(0, intb.deref())]
+            break
+          }
+          default:
+            break
+        }
+      }
     },
     test () {
       console.log('testing...')
       try {
-        console.log(ipcRenderer.sendSync('synchronous-message', 'ping')) // prints "pong"
         // const ans = ffi.Library('D:\\project\\vscjs\\ts\\test\\test\\tms\\add.dll', { hi: [ref.types.void, []], add: ['int', ['int']] }).add(3)
         // console.log(ans)
         // var testFun = ffi.Library('D:\\hi.dll', {
@@ -204,7 +290,7 @@ export default {
         func: item,
         type: this.typeList[this.typeIndex],
         param: '',
-        result: []
+        result: -1
       })
     },
     deleteItem () {
@@ -250,7 +336,36 @@ export default {
     }
   }
 }
-ipcRenderer.on('menu', (event, ...arg) => {
-  console.log(...arg) // prints "pong"
+ipcRenderer.on('menu', (event, arg) => {
+  console.log('menu click:', arg)
+  switch (arg) {
+    case 'SequenceDll':
+      // todo
+      break
+    case 'SequenceFlow':
+      // todo
+      break
+    case 'SequenceOther':
+      // todo
+      break
+    case 'SequenceCombination':
+      // todo
+      break
+    case 'RunStep':
+      // todo
+      break
+    case 'RunSelected':
+      // todo
+      break
+    case 'RunAll':
+      // todo
+      break
+    case 'About':
+      // todo
+      break
+    default:
+      console.log('command error!')
+      break
+  }
 })
 </script>
