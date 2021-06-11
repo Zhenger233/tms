@@ -1,81 +1,124 @@
 <template>
   <div class="home">
-    <el-row>
-      <el-col :span="3"><el-button type="primary" v-on:click="openFile">Open</el-button></el-col>
-      <el-col :span="7"><el-input v-model="words" v-on:keyup.enter="showFun" type="text" /></el-col>
-      <el-col :span="3"><el-button v-on:click="cleanInput">Clean</el-button></el-col>
-      <el-col :span="4">
-        <el-dropdown split-button>
-          <span class="el-dropdown-link">
-            {{typeList[typeIndex]}}
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu v-for="(item, index) in typeList" :key="index">
-              <el-dropdown-item @click="changeType(index)">{{item}}</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-col>
-      <el-col :span="7">
-        <el-dropdown split-button>
-          <span class="el-dropdown-link">
-            {{funList[funIndex]}}
-          </span>
-          <template #dropdown>
-            <el-dropdown-menu v-for="(item, index) in funList" :key="index">
-              <el-dropdown-item @click="insertItem(item)">{{item}}</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </el-col>
-    </el-row>
+    <el-container style="border: 1px solid #eee">
+      <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+        <el-menu :default-openeds="['1']">
+          <el-submenu index="1">
+            <template #title><i class="el-icon-setting"></i>DLL RUN</template>
+            <el-menu-item-group>
+              <el-menu-item index="1-1">Direct Call</el-menu-item>
+              <el-menu-item index="1-2">Pass & Fail</el-menu-item>
+              <el-menu-item index="1-3">Numeric Limit</el-menu-item>
+              <el-menu-item index="1-4">M-num Limit</el-menu-item>
+              <el-menu-item index="1-5">String Value</el-menu-item>
+            </el-menu-item-group>
+          </el-submenu>
+          <el-submenu index="2">
+            <template #title><i class="el-icon-rank"></i>CONTROL FLOW</template>
+            <el-menu-item-group>
+              <el-menu-item index="2-1">If</el-menu-item>
+              <el-menu-item index="2-2">If-OK</el-menu-item>
+              <el-menu-item index="2-3">Else-if</el-menu-item>
+              <el-menu-item index="2-4">Else</el-menu-item>
+              <el-menu-item index="2-5">For-init</el-menu-item>
+              <el-menu-item index="2-6">For-condition</el-menu-item>
+              <el-menu-item index="2-7">For-increment</el-menu-item>
+              <el-menu-item index="2-8">For-main</el-menu-item>
+              <el-menu-item index="2-9">Break</el-menu-item>
+              <el-menu-item index="2-10">Goto</el-menu-item>
+            </el-menu-item-group>
+          </el-submenu>
+          <el-submenu index="3">
+            <template #title><i class="el-icon-menu"></i>OTHERS</template>
+            <el-menu-item-group>
+              <el-menu-item index="3-1">Message Pop</el-menu-item>
+              <el-menu-item index="3-2">Label Assignment</el-menu-item>
+            </el-menu-item-group>
+          </el-submenu>
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <el-header>
+          <el-row style="margin-top:20px">
+            <el-col :span="3"><el-button type="primary" v-on:click="openFile">Open</el-button></el-col>
+            <el-col :span="7"><el-input v-model="words" v-on:keyup.enter="showFun" type="text" /></el-col>
+            <el-col :span="3"><el-button v-on:click="cleanInput">Clean</el-button></el-col>
+            <el-col :span="4">
+              <el-dropdown split-button>
+                <span class="el-dropdown-link">
+                  {{typeList[typeIndex]}}
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu v-for="(item, index) in typeList" :key="index">
+                    <el-dropdown-item @click="changeType(index)">{{item}}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </el-col>
+            <el-col :span="7">
+              <el-dropdown split-button>
+                <span class="el-dropdown-link">
+                  {{funList[funIndex]}}
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu v-for="(item, index) in funList" :key="index">
+                    <el-dropdown-item @click="insertItem(item)">{{item}}</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </el-col>
+          </el-row>
+        </el-header>
+        <el-main>
+          <el-table
+            ref="multipleTable"
+            :data="seqData"
+            tooltip-effect="dark"
+            style="width: 100%"
+            @selection-change="handleSelectionChange">
+            <el-table-column
+              type="selection"
+              width="55">
+            </el-table-column>
+            <el-table-column
+              prop="name"
+              label="name"
+              width="120">
+            </el-table-column>
+            <el-table-column
+              prop="type"
+              label="type"
+              width="120">
+            </el-table-column>
+            <el-table-column
+              prop="err.errCode"
+              label="error"
+              width="120">
+            </el-table-column>
+            <el-table-column
+              prop="param.path"
+              label="param"
+              width="120">
+              <template #default="scope">
+                <el-input v-model="scope.row.param.paramStr" type="text" />
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="result"
+              label="result"
+              show-overflow-tooltip>
+            </el-table-column>
+          </el-table>
 
-    <el-table
-      ref="multipleTable"
-      :data="seqData"
-      tooltip-effect="dark"
-      style="width: 100%"
-      @selection-change="handleSelectionChange">
-      <el-table-column
-        type="selection"
-        width="55">
-      </el-table-column>
-      <el-table-column
-        prop="path"
-        label="path"
-        width="120">
-      </el-table-column>
-      <el-table-column
-        prop="func"
-        label="func"
-        width="120">
-      </el-table-column>
-      <el-table-column
-        prop="type"
-        label="type"
-        width="120">
-      </el-table-column>
-      <el-table-column
-        prop="param"
-        label="param"
-        width="120">
-        <template #default="scope">
-          <el-input v-model="scope.row.param" type="text" />
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="result"
-        label="result"
-        show-overflow-tooltip>
-      </el-table-column>
-    </el-table>
-
-    <div style="margin-top: 20px">
-      <el-button @click="toggleSelection(seqData)">Toggle</el-button>
-      <el-button @click="deleteItem">Delete</el-button>
-      <el-button @click="test">Test</el-button>
-      <el-button @click="run">Run</el-button>
-    </div>
+          <div style="margin-top: 20px">
+            <el-button @click="toggleSelection(seqData)">Toggle</el-button>
+            <el-button @click="deleteItem">Delete</el-button>
+            <el-button @click="test">Test</el-button>
+            <el-button @click="run">Run</el-button>
+          </div>
+        </el-main>
+      </el-container>
+    </el-container>
   </div>
 </template>
 
@@ -106,7 +149,6 @@ export default {
         'M-Num-Lim-D'
       ],
       typeIndex: 0,
-      list: [],
       funList: ['Select'],
       funIndex: 0,
       seqData: [],
@@ -118,95 +160,95 @@ export default {
       for (const item of this.multipleSelection) {
         console.log(item)
         // item: type, path, func, param, result, err
-        switch (item.type) {
-          case 'Call': {
-            const f = ffi.Library(item.path, {
-              [item.func]: ['void', ['short*', 'int*', 'char*']]
-            })
-            const shorta = ref.alloc('short')
-            const inta = ref.alloc('int')
-            const stringa = Buffer.alloc(1024)
-            f[item.func](shorta, inta, stringa)
-            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa)]
-            break
-          }
-          case 'Pass-Fail': {
-            const f = ffi.Library(item.path, {
-              [item.func]: ['void', ['short*', 'int*', 'char*', 'short*']]
-            })
-            const shorta = ref.alloc('short')
-            const inta = ref.alloc('int')
-            const stringa = Buffer.alloc(1024)
-            const shortb = ref.alloc('short')
-            f[item.func](shorta, inta, stringa, shortb)
-            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), shortb.deref()]
-            break
-          }
-          case 'Str-Value': {
-            const f = ffi.Library(item.path, {
-              [item.func]: ['void', ['short*', 'int*', 'char*', 'char*']]
-            })
-            const shorta = ref.alloc('short')
-            const inta = ref.alloc('int')
-            const stringa = Buffer.alloc(1024)
-            const stringb = Buffer.alloc(1024)
-            f[item.func](shorta, inta, stringa, stringb)
-            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), ref.readCString(stringb)]
-            break
-          }
-          case 'Num-Lim-L': {
-            const f = ffi.Library(item.path, {
-              [item.func]: ['void', ['short*', 'int*', 'char*', 'long*']]
-            })
-            const shorta = ref.alloc('short')
-            const inta = ref.alloc('int')
-            const stringa = Buffer.alloc(1024)
-            const longa = ref.alloc('long')
-            f[item.func](shorta, inta, stringa, longa)
-            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), longa.deref()]
-            break
-          }
-          case 'Num-Lim-D': {
-            const f = ffi.Library(item.path, {
-              [item.func]: ['void', ['short*', 'int*', 'char*', 'double*']]
-            })
-            const shorta = ref.alloc('short')
-            const inta = ref.alloc('int')
-            const stringa = Buffer.alloc(1024)
-            const doublea = ref.alloc('double')
-            f[item.func](shorta, inta, stringa, doublea)
-            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), doublea.deref()]
-            break
-          }
-          case 'M-Num-Lim-L': {
-            const f = ffi.Library(item.path, {
-              [item.func]: ['void', ['short*', 'int*', 'char*', 'int*', LongArray]]
-            })
-            const shorta = ref.alloc('short')
-            const inta = ref.alloc('int')
-            const stringa = Buffer.alloc(1024)
-            const intb = ref.alloc('int')
-            const longarraya = new LongArray(10)
-            f[item.func](shorta, inta, stringa, intb, longarraya)
-            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), intb.deref(), longarraya.toArray().slice(0, intb.deref())]
-            break
-          }
-          case 'M-Num-Lim-D': {
-            const f = ffi.Library(item.path, {
-              [item.func]: ['void', ['short*', 'int*', 'char*', 'int*', DoubleArray]]
-            })
-            const shorta = ref.alloc('short')
-            const inta = ref.alloc('int')
-            const stringa = Buffer.alloc(1024)
-            const intb = ref.alloc('int')
-            const doublearraya = new DoubleArray(10)
-            f[item.func](shorta, inta, stringa, intb, doublearraya)
-            item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), intb.deref(), doublearraya.toArray().slice(0, intb.deref())]
-            break
-          }
-          default:
-            break
-        }
+        // switch (item.type) {
+        //   case 'Call': {
+        //     const f = ffi.Library(item.path, {
+        //       [item.func]: ['void', ['short*', 'int*', 'char*']]
+        //     })
+        //     const shorta = ref.alloc('short')
+        //     const inta = ref.alloc('int')
+        //     const stringa = Buffer.alloc(1024)
+        //     f[item.func](shorta, inta, stringa)
+        //     item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa)]
+        //     break
+        //   }
+        //   case 'Pass-Fail': {
+        //     const f = ffi.Library(item.path, {
+        //       [item.func]: ['void', ['short*', 'int*', 'char*', 'short*']]
+        //     })
+        //     const shorta = ref.alloc('short')
+        //     const inta = ref.alloc('int')
+        //     const stringa = Buffer.alloc(1024)
+        //     const shortb = ref.alloc('short')
+        //     f[item.func](shorta, inta, stringa, shortb)
+        //     item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), shortb.deref()]
+        //     break
+        //   }
+        //   case 'Str-Value': {
+        //     const f = ffi.Library(item.path, {
+        //       [item.func]: ['void', ['short*', 'int*', 'char*', 'char*']]
+        //     })
+        //     const shorta = ref.alloc('short')
+        //     const inta = ref.alloc('int')
+        //     const stringa = Buffer.alloc(1024)
+        //     const stringb = Buffer.alloc(1024)
+        //     f[item.func](shorta, inta, stringa, stringb)
+        //     item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), ref.readCString(stringb)]
+        //     break
+        //   }
+        //   case 'Num-Lim-L': {
+        //     const f = ffi.Library(item.path, {
+        //       [item.func]: ['void', ['short*', 'int*', 'char*', 'long*']]
+        //     })
+        //     const shorta = ref.alloc('short')
+        //     const inta = ref.alloc('int')
+        //     const stringa = Buffer.alloc(1024)
+        //     const longa = ref.alloc('long')
+        //     f[item.func](shorta, inta, stringa, longa)
+        //     item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), longa.deref()]
+        //     break
+        //   }
+        //   case 'Num-Lim-D': {
+        //     const f = ffi.Library(item.path, {
+        //       [item.func]: ['void', ['short*', 'int*', 'char*', 'double*']]
+        //     })
+        //     const shorta = ref.alloc('short')
+        //     const inta = ref.alloc('int')
+        //     const stringa = Buffer.alloc(1024)
+        //     const doublea = ref.alloc('double')
+        //     f[item.func](shorta, inta, stringa, doublea)
+        //     item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), doublea.deref()]
+        //     break
+        //   }
+        //   case 'M-Num-Lim-L': {
+        //     const f = ffi.Library(item.path, {
+        //       [item.func]: ['void', ['short*', 'int*', 'char*', 'int*', LongArray]]
+        //     })
+        //     const shorta = ref.alloc('short')
+        //     const inta = ref.alloc('int')
+        //     const stringa = Buffer.alloc(1024)
+        //     const intb = ref.alloc('int')
+        //     const longarraya = new LongArray(10)
+        //     f[item.func](shorta, inta, stringa, intb, longarraya)
+        //     item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), intb.deref(), longarraya.toArray().slice(0, intb.deref())]
+        //     break
+        //   }
+        //   case 'M-Num-Lim-D': {
+        //     const f = ffi.Library(item.path, {
+        //       [item.func]: ['void', ['short*', 'int*', 'char*', 'int*', DoubleArray]]
+        //     })
+        //     const shorta = ref.alloc('short')
+        //     const inta = ref.alloc('int')
+        //     const stringa = Buffer.alloc(1024)
+        //     const intb = ref.alloc('int')
+        //     const doublearraya = new DoubleArray(10)
+        //     f[item.func](shorta, inta, stringa, intb, doublearraya)
+        //     item.result = [shorta.deref(), inta.deref(), ref.readCString(stringa), intb.deref(), doublearraya.toArray().slice(0, intb.deref())]
+        //     break
+        //   }
+        //   default:
+        //     break
+        // }
       }
     },
     test () {
@@ -275,7 +317,7 @@ export default {
       const output = execSync('d:\\pefile.exe exports ' + w)
       const ans = output.toString()
       const tempList = JSON.parse(ans)
-      console.log('list:\t', tempList)
+      console.log('funlist:\t', tempList)
       this.funList = []
       for (const p of tempList) {
         this.funList.push(p[1])
@@ -283,14 +325,40 @@ export default {
       console.log('insert ', this.funList.length)
     },
     insertItem (item) {
-      this.list.push([this.words, item])
+      const itemType = this.typeList[this.typeIndex]
+      const type2param = {
+        Call: [{}, {}],
+        'Pass-Fail': [{ result: ref.alloc('short*') }, {}],
+        'Str-Value': [{ result: Buffer.alloc(1024) }, { param: '' }],
+        'Num-Lim-L': [{ result: ref.alloc('long*') }, { param: {} }],
+        'Num-Lim-D': [{ result: ref.alloc('double*') }, { param: {} }],
+        'M-Num-Lim-L': [{ resultN: ref.alloc('int*'), result: ref.alloc('long*') }, { param: [] }],
+        'M-Num-Lim-D': [{ resultN: ref.alloc('int*'), result: ref.alloc('double*') }, { param: [] }]
+      }
       this.seqData.push({
-        id: this.words + item + this.typeList[this.typeIndex] + new Date().getTime(),
-        path: this.words,
-        func: item,
-        type: this.typeList[this.typeIndex],
-        param: '',
-        result: -1
+        id: this.words + item + itemType + new Date().getTime(),
+        name: itemType + this.seqData.length,
+        type: itemType,
+        err: {
+          errOccurred: 0,
+          errCode: 0,
+          errMsg: ''
+        },
+        result: -1,
+        param: {
+          path: this.words,
+          func: item,
+          paramI: {
+            errOccurred: ref.alloc('short*'),
+            errCode: ref.alloc('int*'),
+            errMsg: Buffer.alloc(1024),
+            ...type2param[itemType][0]
+          },
+          paramO: {
+            ...type2param[itemType][1]
+          },
+          paramStr: ''
+        }
       })
     },
     deleteItem () {
@@ -299,13 +367,9 @@ export default {
         console.log(id)
         this.seqData = this.seqData.filter((item) => item.id !== id)
       })
-      // this.list.splice(index, 1)
-      // console.log('delete', this.list.length)
     },
     runItem (item) {
       console.log('I\'m here:\t', item)
-      const ffi = window.require('ffi-napi')
-      const ref = window.require('ref-napi')
       const funName = item[1]
       console.log('require ok')
       const dllstr = item[0]
