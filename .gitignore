@@ -25,3 +25,4 @@ jsconfig.json
 
 #Electron-builder output
 /dist_electron
+src/assets/pefile.exe

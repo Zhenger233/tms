@@ -5,34 +5,20 @@
         <el-menu :default-openeds="['1']">
           <el-submenu index="1">
             <template #title><i class="el-icon-setting"></i>DLL RUN</template>
-            <el-menu-item-group>
-              <el-menu-item index="1-1">Direct Call</el-menu-item>
-              <el-menu-item index="1-2">Pass & Fail</el-menu-item>
-              <el-menu-item index="1-3">Numeric Limit</el-menu-item>
-              <el-menu-item index="1-4">M-num Limit</el-menu-item>
-              <el-menu-item index="1-5">String Value</el-menu-item>
+            <el-menu-item-group v-for="(item, index) in insertItemList[0]" :key="index">
+              <el-menu-item @click="insertTest(0, index)">{{item}}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="2">
             <template #title><i class="el-icon-rank"></i>CONTROL FLOW</template>
-            <el-menu-item-group>
-              <el-menu-item index="2-1">If</el-menu-item>
-              <el-menu-item index="2-2">If-OK</el-menu-item>
-              <el-menu-item index="2-3">Else-if</el-menu-item>
-              <el-menu-item index="2-4">Else</el-menu-item>
-              <el-menu-item index="2-5">For-init</el-menu-item>
-              <el-menu-item index="2-6">For-condition</el-menu-item>
-              <el-menu-item index="2-7">For-increment</el-menu-item>
-              <el-menu-item index="2-8">For-main</el-menu-item>
-              <el-menu-item index="2-9">Break</el-menu-item>
-              <el-menu-item index="2-10">Goto</el-menu-item>
+            <el-menu-item-group v-for="(item, index) in insertItemList[1]" :key="index">
+              <el-menu-item @click="insertTest(1, index)">{{item}}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="3">
             <template #title><i class="el-icon-menu"></i>OTHERS</template>
-            <el-menu-item-group>
-              <el-menu-item index="3-1">Message Pop</el-menu-item>
-              <el-menu-item index="3-2">Label Assignment</el-menu-item>
+            <el-menu-item-group v-for="(item, index) in insertItemList[2]" :key="index">
+              <el-menu-item @click="insertTest(2, index)">{{item}}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
         </el-menu>
@@ -125,6 +111,7 @@
 <script>
 // import TodoListItem from '@/components/TodoListItem.vue'
 const require = window.require
+const { resolve } = require('path')
 const { dialog } = require('electron').remote
 const ffi = require('ffi-napi')
 const ref = require('ref-napi')
@@ -148,6 +135,11 @@ export default {
         'M-Num-Lim-L',
         'M-Num-Lim-D'
       ],
+      insertItemList: [
+        ['Direct Call', 'Pass & Fail', 'Numeric Limit', 'M-num Limit', 'String Value'],
+        ['If', 'If-OK', 'Else-if', 'Else', 'For-init', 'For-condition', 'For-increment', 'For-main', 'Break', 'Goto'],
+        ['Message Pop', 'Label assignment']
+      ],
       typeIndex: 0,
       funList: ['Select'],
       funIndex: 0,
@@ -156,6 +148,9 @@ export default {
     }
   },
   methods: {
+    insertTest (group, index) {
+      console.log('click:\t', group, index)
+    },
     run () {
       for (const item of this.multipleSelection) {
         console.log(item)
@@ -252,7 +247,9 @@ export default {
       }
     },
     test () {
-      console.log('testing...')
+      console.log('testing...', __dirname, resolve('./'), process.cwd())
+      // const teststring = window.require('child_process').execSync(resolve('./') + '\\src\\assets\\' + 'pefile.exe exports d:\\hi.dll').toString()
+      // console.log(teststring)
       try {
         // const ans = ffi.Library('D:\\project\\vscjs\\ts\\test\\test\\tms\\add.dll', { hi: [ref.types.void, []], add: ['int', ['int']] }).add(3)
         // console.log(ans)
