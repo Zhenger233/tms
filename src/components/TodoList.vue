@@ -29,18 +29,6 @@
             <el-col :span="3"><el-button type="primary" v-on:click="openFile">Open</el-button></el-col>
             <el-col :span="7"><el-input v-model="words" v-on:keyup.enter="showFun" type="text" /></el-col>
             <el-col :span="3"><el-button v-on:click="cleanInput">Clean</el-button></el-col>
-            <el-col :span="4">
-              <el-dropdown split-button>
-                <span class="el-dropdown-link">
-                  {{typeList[typeIndex]}}
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu v-for="(item, index) in typeList" :key="index">
-                    <el-dropdown-item @click="changeType(index)">{{item}}</el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </el-col>
             <el-col :span="7">
               <el-dropdown split-button>
                 <span class="el-dropdown-link">
@@ -95,7 +83,6 @@
               show-overflow-tooltip>
             </el-table-column>
           </el-table>
-
           <div style="margin-top: 20px">
             <el-button @click="toggleSelection(seqData)">Toggle</el-button>
             <el-button @click="deleteItem">Delete</el-button>
@@ -103,6 +90,28 @@
             <el-button @click="run">Run</el-button>
           </div>
         </el-main>
+      </el-container>
+      <el-container style="border: 1px solid #eee">
+        <el-aside>
+        <el-table
+          :data="varList"
+          style="width: 100%">
+          <el-table-column
+            prop="name"
+            label="name"
+            width="100">
+          </el-table-column>
+          <el-table-column
+            prop="type"
+            label="type"
+            width="100">
+          </el-table-column>
+          <el-table-column
+            prop="value"
+            label="value">
+          </el-table-column>
+        </el-table>
+        </el-aside>
       </el-container>
     </el-container>
   </div>
@@ -136,7 +145,7 @@ export default {
         'M-Num-Lim-D'
       ],
       insertItemList: [
-        ['Direct Call', 'Pass & Fail', 'Numeric Limit', 'M-num Limit', 'String Value'],
+        ['Direct Call', 'Pass & Fail', 'String Value', 'Numeric Limit', 'M-num Limit'],
         ['If', 'If-OK', 'Else-if', 'Else', 'For-init', 'For-condition', 'For-increment', 'For-main', 'Break', 'Goto'],
         ['Message Pop', 'Label assignment']
       ],
@@ -144,7 +153,11 @@ export default {
       funList: ['Select'],
       funIndex: 0,
       seqData: [],
-      multipleSelection: []
+      multipleSelection: [],
+      varList: [
+        { name: 'var0', type: 'int', value: 1 },
+        { name: 'var1', type: 'int', value: 2 }
+      ]
     }
   },
   methods: {

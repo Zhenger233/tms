@@ -21,6 +21,7 @@
   "dependencies": {
     "babel-plugin-import": "~1.13.3",
     "core-js": "~3.12.1",
+    "electron-packager": "^15.2.0",
     "element-plus": "~1.0.2-beta.44",
     "ffi-napi": "~2.5.0",
     "ref-array-napi": "^1.2.2",
