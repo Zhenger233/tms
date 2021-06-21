@@ -1,21 +1,21 @@
 {
   "name": "tms",
   "version": "0.1.0",
-  "author": "Zhenger233",
-  "description": "test manage system",
   "private": true,
+  "description": "test manage system",
+  "author": "Zhenger233",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "electron:build": "vue-cli-service electron:build",
     "b": "vue-cli-service electron:build",
+    "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
     "es": "vue-cli-service electron:serve",
-    "s": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps",
-    "r": ".\\node_modules\\.bin\\electron-rebuild.cmd"
+    "r": ".\\node_modules\\.bin\\electron-rebuild.cmd",
+    "s": "vue-cli-service electron:serve"
   },
   "main": "background.js",
   "dependencies": {

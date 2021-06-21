@@ -38,10 +38,14 @@ enableRemoteModule: true,
 contextIsolation: false
 ```
 
-### DLL edit and call
+### DLL format, generate and call
 
 ```c
 __declspec(dllexport) void testmnl(short* errOccurred, long* errCode, char* errMsg, int* n, long* array);
+```
+
+```bash
+g++ -c C:\Users\Zhenger\Desktop\ts\try\add.cpp ; g++ C:\Users\Zhenger\Desktop\ts\try\add.o -shared -fPIC -o d:\hi.dll
 ```
 
 ```javascript

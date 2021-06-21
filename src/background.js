@@ -17,8 +17,8 @@ var win
 async function createWindow () {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1024,
+    height: 768,
     webPreferences: {
       webSecurity: false,
       nodeIntegration: true,
@@ -26,6 +26,7 @@ async function createWindow () {
       contextIsolation: false
     }
   })
+  win.maximize()
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -141,7 +142,9 @@ const template = [
         submenu: [
           {
             label: 'Dll',
-            click: () => { win.webContents.send('menu', 'SequenceDll') }
+            click: () => {
+              win.webContents.send('menu', 'SequenceDll')
+            }
           },
           {
             label: 'Flow',
