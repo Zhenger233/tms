@@ -158,34 +158,89 @@ export default {
         ['Message Pop', 'Label assignment']
       ],
       typeIndex: 0,
-      funList: ['Select'],
+      funList: ['t'],
       funIndex: 0,
       seqData: [],
       multipleSelection: [],
       varList: [
         { name: 'var0', type: 'int', value: 1, valstr: '1' },
-        { name: 'var1', type: 'int', value: 2, valstr: '2' }
+        { name: 'var1', type: 'string', value: 'abcd', valstr: 'abcd' },
+        { name: 'var2', type: 'double', value: 5.0, valstr: '5.0' },
+        { name: 'var3', type: 'int*', value: ref.alloc('int'), valstr: '0' }
       ],
-      varTypeOptions: [
-        { value: 'int', label: 'int' },
-        { value: 'float', label: 'float' },
-        { value: 'string', label: 'string' },
-        { value: 'int*', label: 'int*' },
-        { value: 'float*', label: 'float*' }
-      ]
+      resultList: []
     }
   },
   methods: {
+    showVal (val) {
+      return val
+    },
     valChange (row) {
-      console.log(row)
       switch (row.type) {
         case 'int': {
           console.log('int')
-          if (Number(row.valstr)) {
+          if (!isNaN(Number(row.valstr))) {
             console.log('changing...')
             row.value = Number(row.valstr) & 0x7fffffff
           } else {
             console.log('error int')
+          }
+          break
+        }
+        case 'long': {
+          console.log('long')
+          if (!isNaN(Number(row.valstr))) {
+            console.log('changing...')
+            row.value = Number(row.valstr) & 0x7fffffffffffffff
+          } else {
+            console.log('error long')
+          }
+          break
+        }
+        case 'float':
+        case 'double': {
+          console.log('double')
+          if (!isNaN(Number(row.valstr))) {
+            console.log('changing')
+            row.value = Number(row.valstr)
+          } else {
+            console.log('error double')
+          }
+          break
+        }
+        case 'char*':
+        case 'string': {
+          console.log('string')
+          row.value = Buffer.from(row.valstr + '\0')
+          break
+        }
+        case 'int*': {
+          console.log('int*')
+          if (!isNaN(Number(row.valstr))) {
+            console.log('changing')
+            row.value = ref.alloc('int').writeInt32LE(Number(row.valstr) & 0x7fffffff)
+          } else {
+            console.log('error int*')
+          }
+          break
+        }
+        case 'float*': {
+          console.log('float*')
+          if (!isNaN(Number(row.valstr))) {
+            console.log('changing')
+            row.value = ref.alloc('float').writeFloatLE(Number(row.valstr))
+          } else {
+            console.log('error float*')
+          }
+          break
+        }
+        case 'double*': {
+          console.log('float*')
+          if (!isNaN(Number(row.valstr))) {
+            console.log('changing')
+            row.value = ref.alloc('double').writeDoubleLE(Number(row.valstr))
+          } else {
+            console.log('error double*')
           }
           break
         }
@@ -212,16 +267,27 @@ export default {
           console.log(item.param)
           const funName = item.param.func
           let retType = 'void'
-          if (item.param.paramList[0] === 'void') {
-            retType = 'void'
-          } else {
+          if (item.param.paramList[0] !== 'void') {
             retType = this.varList.find(i => i.name === item.param.paramList[0]).type
           }
           const paramType = item.param.paramList.slice(1).map(i => this.varList.find(j => j.name === i).type)
-          const params = item.param.paramList.slice(1).map(i => this.varList.find(j => j.name === i).value)
           const dll = ffi.Library(item.param.path, { [funName]: [retType, paramType] })
-          const dllResult = dll[funName](...params)
+          const dllResult = dll[funName](...item.param.paramList.slice(1).map(i => this.varList.find(j => j.name === i).value))
+          if (item.param.paramList[0] !== 'void') {
+            const p0 = this.varList.find(i => i.name === item.param.paramList[0])
+            if (p0.type === 'int') {
+              p0.valstr = String(dllResult)
+              p0.value = Number(dllResult)
+            } else if (p0.type === 'string') {
+              p0.value = p0.valstr = String(dllResult)
+            }
+          }
           console.log(dllResult)
+          for (const it of this.varList) {
+            if (it.type === 'int*') {
+              it.valstr = String(it.value.deref())
+            }
+          }
         }
       }
     },
@@ -250,9 +316,6 @@ export default {
       } else {
         this.$refs.multipleTable.clearSelection()
       }
-    },
-    changeType (index) {
-      this.typeIndex = index
     },
     handleSelectionChange (val) {
       console.log('select change:', val.length)
@@ -286,7 +349,7 @@ export default {
       for (const p of tempList) {
         this.funList.push(p[1])
       }
-      console.log('insert ', this.funList.length)
+      console.log('insert ', this.funList.length, ' functions')
     },
     insertItemRun (functionName) {
       const functionType = this.insertItemList[0][this.typeIndex]
