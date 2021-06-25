@@ -144,6 +144,7 @@ const template = [
             label: 'Dll',
             click: () => {
               win.webContents.send('menu', 'SequenceDll')
+              console.log('click menu', require('ffi-napi').Library('d:/hi.dll', { testint: ['int', ['int']] }).testint(5, 6))
             }
           },
           {

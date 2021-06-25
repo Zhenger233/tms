@@ -2,23 +2,23 @@
   <div class="home">
     <el-container style="border: 1px solid #eee">
       <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-menu :default-openeds="['1']">
+        <el-menu :default-openeds="['1']" default-active="1-1">
           <el-submenu index="1">
             <template #title><i class="el-icon-setting"></i>DLL RUN</template>
             <el-menu-item-group v-for="(item, index) in insertItemList[0]" :key="index">
-              <el-menu-item @click="insertTest(0, index)">{{item}}</el-menu-item>
+              <el-menu-item @click="selectMenu(0, index)" :index="'1-'+index">{{item}}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="2">
             <template #title><i class="el-icon-rank"></i>CTRL FLOW</template>
             <el-menu-item-group v-for="(item, index) in insertItemList[1]" :key="index">
-              <el-menu-item @click="insertTest(1, index)">{{item}}</el-menu-item>
+              <el-menu-item @click="selectMenu(1, index)" :index="'2-'+index">{{item}}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="3">
             <template #title><i class="el-icon-menu"></i>OTHERS</template>
             <el-menu-item-group v-for="(item, index) in insertItemList[2]" :key="index">
-              <el-menu-item @click="insertTest(2, index)">{{item}}</el-menu-item>
+              <el-menu-item @click="selectMenu(2, index)" :index="'3-'+index">{{item}}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
         </el-menu>
@@ -44,6 +44,7 @@
         </el-header>
         <el-main>
           <el-table
+            v-show="seqData.length>0"
             ref="multipleTable"
             :data="seqData"
             tooltip-effect="dark"
@@ -82,6 +83,10 @@
                     :key="item.name"
                     :label="item.name"
                     :value="item.name">
+                  <el-row type="flex" class="row-bg" v-if="dllTypeIndex>0&&dllTypeIndex<4">
+                    <el-col :span="10"><div >{{ item.name }}</div></el-col>
+                    <el-col :span="12"><el-checkbox  v-model="scope.row.param.argObj[item.name]"  @click="clickCheckBox" @change="changeCheckBox(scope.row)">result</el-checkbox></el-col>
+                  </el-row>
                   </el-option>
                 </el-select>
               </template>
@@ -94,6 +99,27 @@
             <el-button @click="run">Run</el-button>
             <el-button @click="report">Report</el-button>
           </div>
+          <el-table
+            v-show="resultList.length>0"
+            :data="resultList"
+            tooltip-effect="dark"
+            style="width: 100%;margin:top: 20px">
+            <el-table-column
+              prop="name"
+              label="name"
+              width="180">
+            </el-table-column>
+            <el-table-column
+              prop="type"
+              label="type"
+              width="180">
+            </el-table-column>
+            <el-table-column
+              prop="result"
+              label="result"
+              width="180">
+            </el-table-column>
+          </el-table>
         </el-main>
       </el-container>
       <el-container style="border: 1px solid #eee">
@@ -162,8 +188,8 @@ export default {
         ['If', 'If-OK', 'Else-if', 'Else', 'For-init', 'For-condition', 'For-increment', 'For-main', 'Break', 'Goto'],
         ['Message Pop', 'Label assignment']
       ],
-      typeIndex: 0,
-      funList: ['tests'],
+      dllTypeIndex: 1,
+      funList: ['testint'],
       funIndex: 0,
       seqData: [],
       multipleSelection: [],
@@ -174,10 +200,17 @@ export default {
         // { name: 'var3', type: 'int*', value: ref.alloc('int'), valstr: '0' },
         { name: 'var2', type: 'long*', value: ref.alloc('long'), valstr: '5' }
       ],
-      resultList: []
+      resultList: [],
+      optionList: true
     }
   },
   methods: {
+    changeCheckBox (row) {
+      console.log(row)
+    },
+    clickCheckBox (e) {
+      e.stopPropagation()
+    },
     report () {
       console.log(this)
     },
@@ -198,7 +231,7 @@ export default {
           console.log('short')
           if (!isNaN(Number(row.valstr))) {
             console.log('changing...')
-            row.value = Number(row.valstr) & 0x7fff
+            row.value = Number(row.valstr) & 0xffff
           } else {
             console.log('error short')
           }
@@ -209,7 +242,7 @@ export default {
           console.log('int')
           if (!isNaN(Number(row.valstr))) {
             console.log('changing...')
-            row.value = Number(row.valstr) & 0x7fffffff
+            row.value = Number(row.valstr) & 0xffffffff
           } else {
             console.log('error int')
           }
@@ -219,7 +252,7 @@ export default {
           console.log('long long')
           if (!isNaN(Number(row.valstr))) {
             console.log('changing...')
-            row.value = Number(row.valstr) & 0x7fffffffffffffff
+            row.value = Number(row.valstr) & 0xffffffffffffffff
           } else {
             console.log('error long long')
           }
@@ -247,7 +280,7 @@ export default {
           if (!isNaN(Number(row.valstr))) {
             console.log('changing...', row.valstr)
             row.value = ref.alloc('short')
-            row.value.writeInt16LE(Number(row.valstr) & 0x7fff)
+            row.value.writeInt16LE(Number(row.valstr) & 0xffff)
           } else {
             console.log('error short*')
           }
@@ -259,7 +292,7 @@ export default {
           if (!isNaN(Number(row.valstr))) {
             console.log('changing...', row.valstr)
             row.value = ref.alloc('int')
-            row.value.writeInt32LE(Number(row.valstr) & 0x7fffffff)
+            row.value.writeInt32LE(Number(row.valstr) & 0xffffffff)
           } else {
             console.log('error int*')
           }
@@ -270,7 +303,7 @@ export default {
           if (!isNaN(Number(row.valstr))) {
             console.log('changing')
             row.value = ref.alloc('long long')
-            row.value.writeInt64LE(Number(row.valstr) & 0x7fffffffffffffff)
+            row.value.writeInt64LE(Number(row.valstr) & 0xffffffffffffffff)
           } else {
             console.log('error long long*')
           }
@@ -360,10 +393,11 @@ export default {
         valstr: '0'
       })
     },
-    insertTest (group, index) {
+    selectMenu (group, index) {
       console.log('click:\t', group, index)
+      // select insert dll type index
       if (group === 0) {
-        this.typeIndex = index
+        this.dllTypeIndex = index
       }
     },
     type2realType (type) {
@@ -377,45 +411,97 @@ export default {
       }
     },
     run () {
+      this.resultList = []
       for (const item of this.multipleSelection) {
         console.log(item)
         if (item.type === 'Direct Call') {
-          console.log(item.param)
-          const funName = item.param.func
-          let retType = 'void'
-          if (item.param.paramList[0] !== 'void') {
-            retType = this.varList.find(i => i.name === item.param.paramList[0]).type
-          }
-          const paramType = item.param.paramList.slice(1).map(i => this.type2realType(this.varList.find(j => j.name === i).type))
-          console.log('run:\t', funName, retType, paramType)
-          const dll = ffi.Library(item.param.path, { [funName]: [retType, paramType] })
-          const params = item.param.paramList.slice(1).map(i => this.varList.find(j => j.name === i).value)
-          console.log(params)
-          const dllResult = dll[funName](...params)
-          if (item.param.paramList[0] !== 'void') {
-            const p0 = this.varList.find(i => i.name === item.param.paramList[0])
-            if (p0.type === 'int' || p0.type === 'long' || p0.type === 'short' || p0.type === 'long long') {
-              p0.valstr = String(dllResult)
-              p0.value = Number(dllResult)
-            } else if (p0.type === 'string' || p0.type === 'char*') {
-              p0.value = p0.valstr = String(dllResult)
+          try {
+            console.log(item.param)
+            const funName = item.param.func
+            let retType = 'void'
+            if (item.param.paramList[0] !== 'void') {
+              retType = this.varList.find(i => i.name === item.param.paramList[0]).type
             }
-          }
-          console.log(dllResult)
-          for (const it of this.varList) {
-            if (it.type === 'int*' || it.type === 'short*' || it.type === 'long*' || it.type === 'long long*' || it.type === 'float*' || it.type === 'double*') {
-              it.valstr = String(it.value.deref())
-            } else if (it.type === 'char*' || it.type === 'string') {
-              it.valstr = ref.readCString(it.value, 0)
-            } else if (it.type === 'int[]' || it.type === 'short[]' || it.type === 'long[]' || it.type === 'long long[]' || it.type === 'float[]' || it.type === 'double[]') {
-              it.valstr = JSON.stringify(it.value)
+            const paramType = item.param.paramList.slice(1).map(i => this.type2realType(this.varList.find(j => j.name === i).type))
+            console.log('run:\t', funName, retType, paramType)
+            const dll = ffi.Library(item.param.path, { [funName]: [retType, paramType] })
+            const params = item.param.paramList.slice(1).map(i => this.varList.find(j => j.name === i).value)
+            console.log(params)
+            const dllResult = dll[funName](...params)
+            if (item.param.paramList[0] !== 'void') {
+              const p0 = this.varList.find(i => i.name === item.param.paramList[0])
+              if (p0.type === 'int' || p0.type === 'long' || p0.type === 'short' || p0.type === 'long long') {
+                p0.valstr = String(dllResult)
+                p0.value = Number(dllResult)
+              } else if (p0.type === 'string' || p0.type === 'char*') {
+                p0.value = p0.valstr = String(dllResult)
+              }
             }
+            console.log(dllResult)
+            for (const it of this.varList) {
+              if (it.type === 'int*' || it.type === 'short*' || it.type === 'long*' || it.type === 'long long*' || it.type === 'float*' || it.type === 'double*') {
+                it.valstr = String(it.value.deref())
+              } else if (it.type === 'char*' || it.type === 'string') {
+                it.valstr = ref.readCString(it.value, 0)
+              } else if (it.type === 'int[]' || it.type === 'short[]' || it.type === 'long[]' || it.type === 'long long[]' || it.type === 'float[]' || it.type === 'double[]') {
+                it.valstr = JSON.stringify(it.value)
+              }
+            }
+            item.result = 1
+          } catch (error) {
+            console.log(error)
+          }
+        } else if (item.type === 'Pass & Fail') {
+          try {
+            console.log(item.param)
+            const funName = item.param.func
+            let retType = 'void'
+            if (item.param.paramList[0] !== 'void') {
+              retType = this.varList.find(i => i.name === item.param.paramList[0]).type
+            }
+            const paramType = item.param.paramList.slice(1).map(i => this.type2realType(this.varList.find(j => j.name === i).type))
+            console.log('run:\t', funName, retType, paramType)
+            const dll = ffi.Library(item.param.path, { [funName]: [retType, paramType] })
+            const params = item.param.paramList.slice(1).map(i => this.varList.find(j => j.name === i).value)
+            console.log(params)
+            const dllResult = dll[funName](...params)
+            if (item.param.paramList[0] !== 'void') {
+              const p0 = this.varList.find(i => i.name === item.param.paramList[0])
+              if (p0.type === 'int' || p0.type === 'long' || p0.type === 'short' || p0.type === 'long long') {
+                p0.valstr = String(dllResult)
+                p0.value = Number(dllResult)
+              } else if (p0.type === 'string' || p0.type === 'char*') {
+                p0.value = p0.valstr = String(dllResult)
+              }
+            }
+            console.log(dllResult)
+            for (const it of this.varList) {
+              if (it.type === 'int*' || it.type === 'short*' || it.type === 'long*' || it.type === 'long long*' || it.type === 'float*' || it.type === 'double*') {
+                it.valstr = String(it.value.deref())
+              } else if (it.type === 'char*' || it.type === 'string') {
+                it.valstr = ref.readCString(it.value, 0)
+              } else if (it.type === 'int[]' || it.type === 'short[]' || it.type === 'long[]' || it.type === 'long long[]' || it.type === 'float[]' || it.type === 'double[]') {
+                it.valstr = JSON.stringify(it.value)
+              }
+            }
+            const ao = item.param.argObj
+            console.log(ao)
+            for (const i in ao) {
+              console.log(i, ao[i])
+              if (ao[i]) {
+                item.result = Number(Boolean(this.varList.find(j => j.name === i).value))
+                break
+              }
+            }
+          } catch (error) {
+            console.log(error)
           }
         }
+        this.resultList.push(item)
       }
     },
     test () {
-      console.log('testing...', __dirname, resolve('./'), process.cwd())
+      console.log(this.$data)
       try {
         console.log(this.varList)
         ElMessage({
@@ -475,7 +561,7 @@ export default {
       console.log('insert ', this.funList.length, ' functions')
     },
     insertItemRun (functionName) {
-      const functionType = this.insertItemList[0][this.typeIndex]
+      const functionType = this.insertItemList[0][this.dllTypeIndex]
       this.seqData.push({
         id: this.words + functionName + functionType + new Date().getTime(),
         name: functionName + this.seqData.length,
@@ -485,7 +571,8 @@ export default {
           path: this.words,
           func: functionName,
           paramList: ['void'],
-          argList: []
+          argList: [],
+          argObj: {}
         }
       })
     },

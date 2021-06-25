@@ -1,18 +1,22 @@
 const ffi = require('ffi-napi')
 const ref = require('ref-napi')
-const dllPath = 'd:\\test\\demodll.dll'
-const funName = 'GetPTPeak'
+const dllPath = 'd:\\hi.dll'
+const funName = 'testint'
 const retType = 'int'
-const paramType = ['char*', 'float*']
+const paramType = ['int']
 const dll = ffi.Library(dllPath, { [funName]: [retType, paramType] })
 const params = []
 var p1 = Buffer.from('TCPIP0::192.168.19.3::INSTR\0')
-var p2 = 5.0
+var p2 = -1
 var p3 = ref.alloc('int')
 var p4 = ref.alloc('float')
-params.push(p1, p4)
-const result = dll[funName](...params)
-console.log(result, p1.readCString(0), p4.deref())
+params.push(p2)
+try {
+  const result = dll[funName](...params)
+  console.log(result)
+} catch (error) {
+  console.log('\n!!!!!!\n', error, '\n!!!!!!')
+}
 
 // const dll = ffi.Library('D:\\word\\Tencent Files\\2042712521\\FileRecv\\demodll\\demodll.dll', {
 //   PassAmplitude: ['int', ['char*', 'double', 'int*']],
