@@ -1,22 +1,19 @@
 const ffi = require('ffi-napi')
 const ref = require('ref-napi')
 const dllPath = 'd:\\hi.dll'
-const funName = 'testint'
-const retType = 'int'
-const paramType = ['int']
+const funName = 'tests'
+const retType = 'void'
+const paramType = ['short*', 'long*', 'char*', 'char*']
 const dll = ffi.Library(dllPath, { [funName]: [retType, paramType] })
 const params = []
-var p1 = Buffer.from('TCPIP0::192.168.19.3::INSTR\0')
-var p2 = -1
-var p3 = ref.alloc('int')
-var p4 = ref.alloc('float')
-params.push(p2)
-try {
-  const result = dll[funName](...params)
-  console.log(result)
-} catch (error) {
-  console.log('\n!!!!!!\n', error, '\n!!!!!!')
-}
+const p1 = ref.alloc('short')
+const p2 = ref.alloc('long')
+const p3 = Buffer.from('123' + '\0'.repeat(64))
+const p4 = Buffer.from('123' + '\0'.repeat(64))
+params.push(p1, p2, p3, p4)
+
+const result = dll[funName](...params)
+console.log(result, p1.deref(), p2.deref(), ref.readCString(p3), ref.readCString(p4))
 
 // const dll = ffi.Library('D:\\word\\Tencent Files\\2042712521\\FileRecv\\demodll\\demodll.dll', {
 //   PassAmplitude: ['int', ['char*', 'double', 'int*']],

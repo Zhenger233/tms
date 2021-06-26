@@ -5,7 +5,7 @@
 find mu_visual_cpp_build_tools_2015_update_3_x64.iso and install.
 
 ```
-npm i @vue/cli ffi-napi@2.5.0 ref-napi electron-rebuild
+npm i @vue/cli ffi-napi@2.5.0 ref-napi electron-rebuild ref-array-napi
 vue add electron-build element-plus
 ```
 
