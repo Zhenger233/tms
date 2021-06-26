@@ -2,7 +2,7 @@
   <div class="home">
     <el-container style="border: 1px solid #eee">
       <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-menu :default-openeds="['1']" default-active="1-2">
+        <el-menu :default-openeds="['1']" default-active="1-3">
           <el-submenu index="1">
             <template #title><i class="el-icon-setting"></i>DLL RUN</template>
             <el-menu-item-group v-for="(item, index) in insertItemList[0]" :key="index">
@@ -84,14 +84,15 @@
                     :label="item.name"
                     :value="item.name">
                   <el-row type="flex" class="row-bg" v-if="dllTypeIndex>0" justify="space-between">
-                    <el-col :span="7"><div >{{ item.name }}</div></el-col>
-                    <el-col :span="3"><el-checkbox  v-model="scope.row.param.argObj[item.name]"  @click="clickCheckBox" @change="changeCheckBox(scope.row)">result</el-checkbox></el-col>
-                    <el-col :span="10" v-if="dllTypeIndex>1&&scope.row.param.argObj[item.name]">
-                      <el-select v-model="scope.row.param.argList[0]" clearable filterable allow-create placeholder="str to compare"><el-option
+                    <el-col :span="5"><div >{{ item.name }}</div></el-col>
+                    <el-col :span="5"><el-checkbox  v-model="scope.row.param.argObj[item.name]"  @click="clickCheckBox" @change="changeCheckBox(scope.row)">result</el-checkbox></el-col>
+                    <el-col :span="14" v-if="dllTypeIndex>1&&scope.row.param.argObj[item.name]">
+                      <el-select v-model="scope.row.param.argList" clearable multiple filterable allow-create placeholder="value to compare" ><el-option
                       v-for="item in varList"
                       :key="item.name"
                       :label="item.name"
-                      :value="item.name"></el-option></el-select>
+                      :value="item.name"
+                      ></el-option></el-select>
                     </el-col>
                   </el-row>
                   </el-option>
@@ -195,8 +196,8 @@ export default {
         ['If', 'If-OK', 'Else-if', 'Else', 'For-init', 'For-condition', 'For-increment', 'For-main', 'Break', 'Goto'],
         ['Message Pop', 'Label assignment']
       ],
-      dllTypeIndex: 2,
-      funList: ['tests'],
+      dllTypeIndex: 3,
+      funList: ['testint'],
       funIndex: 0,
       seqData: [],
       multipleSelection: [],
@@ -204,8 +205,10 @@ export default {
         { name: 'var0', type: 'short*', value: ref.alloc('short'), valstr: '1' },
         { name: 'var1', type: 'char*', value: Buffer.from('TCPIP0::192.168.19.3::INSTR\0'), valstr: 'TCPIP0::192.168.19.3::INSTR' },
         { name: 'var2', type: 'long*', value: ref.alloc('long'), valstr: '5' },
-        { name: 'var3', type: 'char*', value: Buffer.from('\0'.repeat(64)), valstr: '' },
-        { name: 'var4', type: 'char*', value: Buffer.from('result string.' + '\0'.repeat(64)), valstr: 'result string.' }
+        { name: 'var3', type: 'int', value: 1, valstr: '1' },
+        { name: 'var4', type: 'int', value: 1, valstr: '1' }
+        // { name: 'var3', type: 'char*', value: Buffer.from('\0'.repeat(64)), valstr: '' },
+        // { name: 'var4', type: 'char*', value: Buffer.from('result string.' + '\0'.repeat(64)), valstr: 'result string.' }
       ],
       resultList: [],
       optionList: true
@@ -390,6 +393,14 @@ export default {
           }
           break
         }
+        case '>=':
+        case '>':
+        case '==':
+        case '<=':
+        case '<': {
+          console.log('compare')
+          row.value = Number(row.valstr)
+        }
       }
     },
     addVar () {
@@ -481,6 +492,33 @@ export default {
               console.log(i, ao[i])
               if (ao[i]) {
                 item.result = Number(ref.readCString(this.varList.find(j => j.name === i).value, 0) === ref.readCString(this.varList.find(j => j.name === item.param.argList[0]).value, 0))
+                break
+              }
+            }
+          } catch (error) {
+            console.log(error)
+          }
+        } else if (item.type === 'Numeric Limit') {
+          try {
+            const ao = item.param.argObj
+            const al = item.param.argList
+            console.log('argObj:', ao, 'argList:', al)
+            for (const i in ao) {
+              if (ao[i]) {
+                const varResult = this.varList.find(j => j.name === i).value
+                const tvCompare = []
+                console.log('length:', al.length)
+                for (let i = 0; i < al.length; i++) {
+                  console.log(al[i])
+                  tvCompare.push(this.varList.find(j => j.name === al[i]))
+                }
+                console.log('varResult,tvCompare:', varResult, tvCompare)
+                let resultCompare = true
+                for (const tv of tvCompare) {
+                  console.log('tv:', tv)
+                  resultCompare = resultCompare && eval(varResult + tv.type + tv.value)
+                }
+                item.result = Number(resultCompare)
                 break
               }
             }
