@@ -2,7 +2,7 @@
   <div class="home">
     <el-container style="border: 1px solid #eee">
       <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-menu :default-openeds="['1']" default-active="1-3">
+        <el-menu :default-openeds="['1']" default-active="1-4">
           <el-submenu index="1">
             <template #title><i class="el-icon-setting"></i>DLL RUN</template>
             <el-menu-item-group v-for="(item, index) in insertItemList[0]" :key="index">
@@ -196,8 +196,8 @@ export default {
         ['If', 'If-OK', 'Else-if', 'Else', 'For-init', 'For-condition', 'For-increment', 'For-main', 'Break', 'Goto'],
         ['Message Pop', 'Label assignment']
       ],
-      dllTypeIndex: 3,
-      funList: ['testint'],
+      dllTypeIndex: 4,
+      funList: ['testmnll'],
       funIndex: 0,
       seqData: [],
       multipleSelection: [],
@@ -205,8 +205,9 @@ export default {
         { name: 'var0', type: 'short*', value: ref.alloc('short'), valstr: '1' },
         { name: 'var1', type: 'char*', value: Buffer.from('TCPIP0::192.168.19.3::INSTR\0'), valstr: 'TCPIP0::192.168.19.3::INSTR' },
         { name: 'var2', type: 'long*', value: ref.alloc('long'), valstr: '5' },
-        { name: 'var3', type: 'int', value: 1, valstr: '1' },
-        { name: 'var4', type: 'int', value: 1, valstr: '1' }
+        { name: 'var3', type: 'int*', value: ref.alloc('int'), valstr: '0' },
+        { name: 'var4', type: 'long[]', value: new LongArray(5), valstr: '0,0,0,0,0' },
+        { name: 'comp', type: '<', value: 100, valstr: '100' }
         // { name: 'var3', type: 'char*', value: Buffer.from('\0'.repeat(64)), valstr: '' },
         // { name: 'var4', type: 'char*', value: Buffer.from('result string.' + '\0'.repeat(64)), valstr: 'result string.' }
       ],
@@ -522,6 +523,48 @@ export default {
                 break
               }
             }
+          } catch (error) {
+            console.log(error)
+          }
+        } else if (item.type === 'M-num Limit') {
+          try {
+            const ao = item.param.argObj
+            const al = item.param.argList
+            const aol = []
+            let argn = 0
+            const arga = []
+            console.log('ao:', ao)
+            for (const i in ao) {
+              if (ao[i]) {
+                aol.push(i)
+              }
+            }
+            console.log('aol:', aol)
+            for (const item of aol) {
+              const n = this.varList.find(j => j.name === item)
+              if (n.type === 'int' || n.type === 'short' || n.type === 'long') { argn = n.value }
+              if (n.type === 'int*' || n.type === 'short*' || n.type === 'long*') { argn = n.value.deref() }
+              if (n.type === 'int[]' || n.type === 'short[]' || n.type === 'long[]' || n.type === 'float[]' || n.type === 'double[]') {
+                arga.length = 0
+                for (let i = 0; i < n.value.length; i++) {
+                  arga.push(n.value[i])
+                }
+              }
+            }
+            console.log('argn,arga:', argn, arga)
+            const tvCompare = []
+            for (let i = 0; i < al.length; i++) {
+              console.log('ali:', al[i])
+              tvCompare.push(this.varList.find(j => j.name === al[i]))
+            }
+            let resultCompare = true
+            for (let i = 0; i < argn; i++) {
+              for (const tv of tvCompare) {
+                console.log('tvi:', tv, i)
+                resultCompare = resultCompare && eval(arga[i] + tv.type + tv.value)
+              }
+            }
+            item.result = Number(resultCompare)
           } catch (error) {
             console.log(error)
           }
