@@ -67,7 +67,8 @@
             :data="seqData"
             tooltip-effect="dark"
             style="width: 100%"
-            @selection-change="handleSelectionChange">
+            @selection-change="handleSelectionChange"
+            :tree-props="{children: 'children'}">
             <el-table-column
               type="selection"
               width="55">
@@ -83,7 +84,7 @@
               width="120">
             </el-table-column>
             <el-table-column
-              prop="param.path"
+              prop="param.paramList"
               label="param"
               width="420">
               <template #default="scope">
@@ -122,8 +123,11 @@
             <el-button @click="toggleSelection(seqData)">Toggle</el-button>
             <el-button @click="deleteItem">Delete</el-button>
             <el-button @click="test">Test</el-button>
+            <el-button @click="insertItemCombination">Combine</el-button>
             <el-button @click="run">Run</el-button>
             <el-button @click="report">Report</el-button>
+            <el-button @click="importSeqFile">Import</el-button>
+            <el-button @click="exportSeqFile">Export</el-button>
           </div>
           <el-table
             v-show="resultList.length>0"
@@ -210,6 +214,7 @@ const FloatArray = ArrayType('float')
 const DoubleArray = ArrayType('double')
 const { ipcRenderer } = require('electron')
 const execSync = window.require('child_process').execSync
+const fs = require('fs')
 
 export default {
   name: 'TodoList',
@@ -222,8 +227,8 @@ export default {
         ['If', 'If-OK', 'Else-if', 'Else', 'For-init', 'For-condition', 'For-increment', 'For-main', 'Break', 'Goto'],
         ['Message Pop', 'Label assignment']
       ],
-      menuIndex: 4,
-      funList: ['testmnll'],
+      menuIndex: 0,
+      funList: ['testint'],
       funIndex: 0,
       seqData: [],
       multipleSelection: [],
@@ -240,7 +245,6 @@ export default {
       varListMax: 6,
       resultList: [],
       menuGroup: 0,
-      optionList: true,
       messageTypeList: ['none', 'info', 'warning', 'error'],
       messageType: 'none',
       messageTitle: '',
@@ -249,13 +253,43 @@ export default {
     }
   },
   methods: {
+    importSeqFile () {
+      dialog.showOpenDialog({
+        title: 'Import',
+        buttonLabel: 'import',
+        filters: [
+          { name: 'File Type', extensions: ['json', 'zztms'] }
+        ]
+      }).then(result => {
+        console.log(result.filePaths)
+        const fileString = fs.readFileSync(result.filePaths[0], 'utf8')
+        console.log(fileString)
+        this.seqData.push(...JSON.parse(fileString))
+      }).catch(err => {
+        console.log(err)
+      })
+    },
+    exportSeqFile () {
+      dialog.showSaveDialog({
+        title: 'Export',
+        buttonLabel: 'save',
+        filters: [
+          { name: 'File Type', extensions: ['json', 'zztms'] }
+        ]
+      }).then(result => {
+        console.log(result)
+        fs.writeFileSync(result.filePath, JSON.stringify(this.seqData))
+      }).catch(err => {
+        console.log(err)
+      })
+    },
     deleteVal (varIndex) {
       console.log('delete:', varIndex)
       this.varList.splice(varIndex, 1)
     },
     insertMessagePop () {
       this.seqData.push({
-        id: 'MessagePop' + this.messageType + this.messageTitle + new Date().getTime(),
+        id: 'MessagePop' + this.seqData.length + this.messageType + this.messageTitle + new Date().getTime(),
         name: this.messageType + this.seqData.length,
         type: 'MessagePop',
         result: -1,
@@ -484,8 +518,7 @@ export default {
       this.resultList = []
       for (const item of this.multipleSelection) {
         if (this.menuGroup === 0) {
-          console.log(item)
-          console.log(item.param)
+          console.log('seq:', item)
           const funName = item.param.func
           let retType = 'void'
           if (item.param.paramList[0] !== 'void') {
@@ -530,6 +563,7 @@ export default {
                 console.log(i, ao[i])
                 if (ao[i]) {
                   const varResult = this.varList.find(j => j.name === i)
+                  console.log('varResult:', varResult)
                   item.result = Number(this.val2result(varResult.type, varResult.value))
                   break
                 }
@@ -730,7 +764,7 @@ export default {
     insertItemRun (functionName) {
       const functionType = this.insertItemList[0][this.menuIndex]
       this.seqData.push({
-        id: this.words + functionName + functionType + new Date().getTime(),
+        id: this.words + functionName + functionType + this.seqData.length + new Date().getTime(),
         name: functionName + this.seqData.length,
         type: functionType,
         result: -1,
@@ -741,6 +775,27 @@ export default {
           argList: [],
           argObj: {}
         }
+      })
+    },
+    insertItemCombination () {
+      console.log(this.multipleSelection)
+      const seqNameList = []
+      const seqListCombination = []
+      for (const item of this.multipleSelection) {
+        seqNameList.push(item.name)
+        seqListCombination.push(item)
+      }
+      this.seqData.push({
+        id: 'combination' + this.seqData.length + seqNameList.map(i => i[0]).join('') + seqListCombination.length + new Date().getTime(),
+        name: 'seqCombination' + this.seqData.length,
+        type: 'Combination',
+        result: -1,
+        param: {
+          paramList: seqNameList,
+          argObj: {},
+          argList: []
+        },
+        children: seqListCombination
       })
     },
     deleteItem () {
