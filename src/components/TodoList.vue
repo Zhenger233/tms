@@ -148,12 +148,12 @@
           </el-table>
         </el-main>
       </el-container>
-      <el-container style="border: 1px solid #eee">
-        <el-aside>
-        <div style="text-align:center;margin-top: 20px;">Variable List</div>
+      <el-container style="border: 1px solid #eee;margin-right:0">
+        <el-aside width="400">
+        <div style="text-align:center;margin-top: 20px;font-size:20px;bold">Variable List</div>
         <el-table
           :data="varList"
-          style="width: 100%">
+          style="margin-right:0;width:100%">
           <el-table-column
             label="name"
             width="100"
@@ -164,7 +164,7 @@
           </el-table-column>
           <el-table-column
             label="type"
-            width="100"
+            width="102"
             align="center">
             <template #default="scope">
             <el-input v-model="scope.row.type" type='text' @input="valChange(scope.row)" v-on:keyup.enter="addVar"></el-input>
@@ -173,13 +173,21 @@
           <el-table-column
             prop="value"
             label="value"
-            width="360">
+            align="center"
+            width="150">
             <template #default="scope">
             <el-input v-model="scope.row.valstr" type='text' @input="valChange(scope.row)" v-on:keyup.enter="addVar"></el-input>
             </template>
           </el-table-column>
+          <el-table-column
+          width="30">
+            <template #default="scope">
+              <i class="el-icon-circle-close" @click="deleteVal(scope.$index)" style="font-size:20px"></i>
+            </template>
+          </el-table-column>
         </el-table>
-        <el-button @click="addVar">Add</el-button>
+        <!-- <el-button @click="addVar">Add</el-button> -->
+        <i class="el-icon-circle-plus-outline" @click="addVar" style="font-size:30px"></i>
         </el-aside>
       </el-container>
     </el-container>
@@ -229,6 +237,7 @@ export default {
         // { name: 'var3', type: 'char*', value: Buffer.from('\0'.repeat(64)), valstr: '' },
         // { name: 'var4', type: 'char*', value: Buffer.from('result string.' + '\0'.repeat(64)), valstr: 'result string.' }
       ],
+      varListMax: 6,
       resultList: [],
       menuGroup: 0,
       optionList: true,
@@ -240,6 +249,10 @@ export default {
     }
   },
   methods: {
+    deleteVal (varIndex) {
+      console.log('delete:', varIndex)
+      this.varList.splice(varIndex, 1)
+    },
     insertMessagePop () {
       this.seqData.push({
         id: 'MessagePop' + this.messageType + this.messageTitle + new Date().getTime(),
@@ -445,11 +458,12 @@ export default {
     },
     addVar () {
       this.varList.push({
-        name: 'var' + this.varList.length,
+        name: 'var' + this.varListMax,
         type: 'int',
         value: 0,
         valstr: '0'
       })
+      this.varListMax++
     },
     selectMenu (group, index) {
       console.log('click menu:\t', group, index)
