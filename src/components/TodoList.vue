@@ -1,92 +1,179 @@
 <template>
   <div class="home">
     <el-container style="border: 1px solid #eee">
-      <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-menu :default-openeds="['3']" :default-active="'1-'+menuIndex">
+      <el-aside
+        width="200px"
+        style="background-color: rgb(238, 241, 246)"
+      >
+        <el-menu
+          :default-openeds="['3']"
+          :default-active="'1-' + menuIndex"
+        >
           <el-submenu index="1">
             <template #title><i class="el-icon-setting"></i>DLL RUN</template>
-            <el-menu-item-group v-for="(item, index) in insertItemList[0]" :key="index">
-              <el-menu-item @click="selectMenu(0, index)" :index="'1-'+index">{{item}}</el-menu-item>
+            <el-menu-item-group
+              v-for="(item, index) in insertItemList[0]"
+              :key="index"
+            >
+              <el-menu-item
+                @click="selectMenu(0, index)"
+                :index="'1-' + index"
+              >{{ item }}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="2">
             <template #title><i class="el-icon-rank"></i>CTRL FLOW</template>
-            <el-menu-item-group v-for="(item, index) in insertItemList[1]" :key="index">
-              <el-menu-item @click="selectMenu(1, index)" :index="'2-'+index">{{item}}</el-menu-item>
+            <el-menu-item-group
+              v-for="(item, index) in insertItemList[1]"
+              :key="index"
+            >
+              <el-menu-item
+                @click="selectMenu(1, index)"
+                :index="'2-' + index"
+              >{{ item }}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
           <el-submenu index="3">
             <template #title><i class="el-icon-menu"></i>OTHERS</template>
-            <el-menu-item-group v-for="(item, index) in insertItemList[2]" :key="index">
-              <el-menu-item @click="selectMenu(2, index)" :index="'3-'+index">{{item}}</el-menu-item>
+            <el-menu-item-group
+              v-for="(item, index) in insertItemList[2]"
+              :key="index"
+            >
+              <el-menu-item
+                @click="selectMenu(2, index)"
+                :index="'3-' + index"
+              >{{ item }}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
         </el-menu>
       </el-aside>
       <el-container>
         <el-header>
-          <el-row v-if="menuGroup===0" style="margin-top:20px">
-            <el-col :span="4"><el-button type="primary" v-on:click="openFile">Open</el-button></el-col>
-            <el-col :span="10"><el-input v-model="words" clearable v-on:keyup.enter="showFun" type="text" @clear="cleanInput"/></el-col>
+          <el-row
+            v-if="menuGroup === 0"
+            style="margin-top: 20px"
+          >
+            <el-col :span="4">
+              <el-button
+                type="primary"
+                v-on:click="openFile"
+              >Open</el-button>
+            </el-col>
+            <el-col :span="10">
+              <el-input
+                v-model="words"
+                clearable
+                v-on:keyup.enter="showFun"
+                type="text"
+                @clear="cleanInput"
+              />
+            </el-col>
             <el-col :span="10">
               <el-dropdown split-button>
                 <span class="el-dropdown-link">
-                  {{funList[funIndex]}}
+                  {{ funList[funIndex] }}
                 </span>
                 <template #dropdown>
-                  <el-dropdown-menu v-for="(item, index) in funList" :key="index">
-                    <el-dropdown-item @click="insertItemRun(item)">{{item}}</el-dropdown-item>
+                  <el-dropdown-menu
+                    v-for="(item, index) in funList"
+                    :key="index"
+                  >
+                    <el-dropdown-item @click="insertItemRun(item)">{{
+                      item
+                    }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
             </el-col>
           </el-row>
-          <el-row type="flex" v-if="menuGroup==2&&menuIndex==0" style="margin-top:20px">
-            <el-col :span="3">
-            <el-select v-model="messageType" clearable placeholder="type">
-              <el-option v-for="item in messageTypeList" :key="item" :value="item" :label="item"></el-option>
-            </el-select>
+          <el-row
+            type="flex"
+            v-if="menuGroup == 2 && menuIndex == 0"
+            style="margin-top: 20px;justify-content:space-around"
+          >
+            <el-col :span="6">
+              <el-select
+                v-model="messageType"
+                clearable
+                placeholder="type"
+              >
+                <el-option
+                  v-for="item in messageTypeList"
+                  :key="item"
+                  :value="item"
+                  :label="item"
+                ></el-option>
+              </el-select>
             </el-col>
-            <el-col :span="3">
-            <el-select v-model="messageTitle" clearable placeholder="title">
-              <el-option v-for="item in varList" :key="item.name" :label="item.name" :value="item.name"></el-option>
-            </el-select>
+            <el-col :span="6">
+              <el-select
+                v-model="messageTitle"
+                clearable
+                placeholder="title"
+              >
+                <el-option
+                  v-for="item in varList"
+                  :key="item.name"
+                  :label="item.name"
+                  :value="item.name"
+                ></el-option>
+              </el-select>
             </el-col>
-            <el-col :span="3">
-            <el-select v-model="messageMessage" clearable placeholder="message">
-              <el-option v-for="item in varList" :key="item.name" :label="item.name" :value="item.name"></el-option>
-            </el-select>
+            <el-col :span="6">
+              <el-select
+                v-model="messageMessage"
+                clearable
+                placeholder="message"
+              >
+                <el-option
+                  v-for="item in varList"
+                  :key="item.name"
+                  :label="item.name"
+                  :value="item.name"
+                ></el-option>
+              </el-select>
             </el-col>
-            <el-col :span="5"><el-button type="primary" @click="insertMessagePop">Insert</el-button></el-col>
+            <el-col :span="6">
+              <el-button
+                type="primary"
+                @click="insertMessagePop"
+              >Insert</el-button>
+            </el-col>
           </el-row>
         </el-header>
         <el-main>
           <el-table
-            v-show="seqData.length>0"
+            v-show="seqData.length > 0"
             ref="multipleTable"
             :data="seqData"
             tooltip-effect="dark"
             style="width: 100%"
             @selection-change="handleSelectionChange"
-            :tree-props="{children: 'children'}">
+            default-expand-all
+            row-key="id"
+            :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+          >
             <el-table-column
               type="selection"
-              width="55">
-            </el-table-column>
+              width="30"
+            > </el-table-column>
             <el-table-column
               prop="name"
               label="name"
-              width="120">
+              width="160"
+            >
             </el-table-column>
             <el-table-column
               prop="type"
               label="type"
-              width="120">
+              width="120"
+            >
             </el-table-column>
             <el-table-column
               prop="param.paramList"
               label="param"
-              width="420">
+              width="420"
+            >
               <template #default="scope">
                 <el-select
                   v-model="scope.row.param.paramList"
@@ -96,24 +183,51 @@
                   allow-create
                   default-first-option
                   placeholder="return & param"
-                  style="width:100%">
+                  style="width:100%"
+                >
                   <el-option
                     v-for="item in varList"
                     :key="item.name"
                     :label="item.name"
-                    :value="item.name">
-                  <el-row type="flex" class="row-bg" v-if="menuGroup==0&&menuIndex>0" justify="space-between">
-                    <el-col :span="5"><div >{{ item.name }}</div></el-col>
-                    <el-col :span="5"><el-checkbox  v-model="scope.row.param.argObj[item.name]"  @click="clickCheckBox" @change="changeCheckBox(scope.row)">result</el-checkbox></el-col>
-                    <el-col :span="14" v-if="menuGroup==0&&menuIndex>1&&scope.row.param.argObj[item.name]">
-                      <el-select v-model="scope.row.param.argList" clearable multiple filterable allow-create placeholder="value to compare" ><el-option
-                      v-for="item in varList"
-                      :key="item.name"
-                      :label="item.name"
-                      :value="item.name"
-                      ></el-option></el-select>
-                    </el-col>
-                  </el-row>
+                    :value="item.name"
+                  >
+                    <el-row
+                      type="flex"
+                      class="row-bg"
+                      v-if="menuGroup==0&&menuIndex>0"
+                      justify="space-between"
+                    >
+                      <el-col :span="5">
+                        <div>{{ item.name }}</div>
+                      </el-col>
+                      <el-col :span="5">
+                        <el-checkbox
+                          v-model="scope.row.param.argObj[item.name]"
+                          @click="clickCheckBox"
+                          @change="changeCheckBox(scope.row)"
+                        >result</el-checkbox>
+                      </el-col>
+                      <el-col
+                        :span="14"
+                        v-if="menuGroup==0&&menuIndex>1&&scope.row.param.argObj[item.name]"
+                      >
+                        <el-select
+                          v-model="scope.row.param.argList"
+                          clearable
+                          multiple
+                          filterable
+                          allow-create
+                          placeholder="value to compare"
+                        >
+                          <el-option
+                            v-for="item in varList"
+                            :key="item.name"
+                            :label="item.name"
+                            :value="item.name"
+                          ></el-option>
+                        </el-select>
+                      </el-col>
+                    </el-row>
                   </el-option>
                 </el-select>
               </template>
@@ -130,68 +244,99 @@
             <el-button @click="exportSeqFile">Export</el-button>
           </div>
           <el-table
-            v-show="resultList.length>0"
+            v-show="resultList.length > 0"
             :data="resultList"
             tooltip-effect="dark"
-            style="width: 100%;margin:top: 20px">
+            style="width: 100%;margin:top: 20px"
+          >
             <el-table-column
               prop="name"
               label="name"
-              width="180">
+              width="180"
+            >
             </el-table-column>
             <el-table-column
               prop="type"
               label="type"
-              width="180">
+              width="180"
+            >
             </el-table-column>
             <el-table-column
               prop="result"
               label="result"
-              width="180">
+              width="180"
+            >
             </el-table-column>
           </el-table>
         </el-main>
       </el-container>
-      <el-container style="border: 1px solid #eee;margin-right:0">
+      <el-container style="border: 1px solid #eee; margin-right: 0">
         <el-aside width="400">
-        <div style="text-align:center;margin-top: 20px;font-size:20px;bold">Variable List</div>
-        <el-table
-          :data="varList"
-          style="margin-right:0;width:100%">
-          <el-table-column
-            label="name"
-            width="100"
-            align="center">
-            <template #default="scope">
-            <el-input v-model="scope.row.name" type='text' v-on:keyup.enter="addVar"></el-input>
-            </template>
-          </el-table-column>
-          <el-table-column
-            label="type"
-            width="102"
-            align="center">
-            <template #default="scope">
-            <el-input v-model="scope.row.type" type='text' @input="valChange(scope.row)" v-on:keyup.enter="addVar"></el-input>
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="value"
-            label="value"
-            align="center"
-            width="150">
-            <template #default="scope">
-            <el-input v-model="scope.row.valstr" type='text' @input="valChange(scope.row)" v-on:keyup.enter="addVar"></el-input>
-            </template>
-          </el-table-column>
-          <el-table-column
-          width="30">
-            <template #default="scope">
-              <i class="el-icon-circle-close" @click="deleteVal(scope.$index)" style="font-size:20px"></i>
-            </template>
-          </el-table-column>
-        </el-table>
-        <!-- <el-button @click="addVar">Add</el-button> -->
-        <i class="el-icon-circle-plus-outline" @click="addVar" style="font-size:30px"></i>
+          <div style="text-align:center;margin-top: 20px;font-size:20px;bold">
+            Variable List
+          </div>
+          <el-table
+            :data="varList"
+            style="margin-right: 0; width: 100%"
+          >
+            <el-table-column
+              label="name"
+              width="100"
+              align="center"
+            >
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.name"
+                  type="text"
+                  v-on:keyup.enter="addVar"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="type"
+              width="102"
+              align="center"
+            >
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.type"
+                  type="text"
+                  @input="valChange(scope.row)"
+                  v-on:keyup.enter="addVar"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="value"
+              label="value"
+              align="center"
+              width="150"
+            >
+              <template #default="scope">
+                <el-input
+                  v-model="scope.row.valstr"
+                  type="text"
+                  @input="valChange(scope.row)"
+                  v-on:keyup.enter="addVar"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column width="30">
+              <template #default="scope">
+                <i
+                  class="el-icon-circle-close"
+                  @click="deleteVal(scope.$index)"
+                  style="font-size: 20px"
+                ></i>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!-- <el-button @click="addVar">Add</el-button> -->
+          <i
+            class="el-icon-circle-plus-outline"
+            @click="addVar"
+            style="font-size: 30px"
+          ></i>
         </el-aside>
       </el-container>
     </el-container>
@@ -215,6 +360,7 @@ const DoubleArray = ArrayType('double')
 const { ipcRenderer } = require('electron')
 const execSync = window.require('child_process').execSync
 const fs = require('fs')
+const xlsx = require('node-xlsx')
 
 export default {
   name: 'TodoList',
@@ -223,9 +369,26 @@ export default {
       words: 'd:/hi.dll',
       funParam: '',
       insertItemList: [
-        ['Direct Call', 'Pass & Fail', 'String Value', 'Numeric Limit', 'M-num Limit'],
-        ['If', 'If-OK', 'Else-if', 'Else', 'For-init', 'For-condition', 'For-increment', 'For-main', 'Break', 'Goto'],
-        ['Message Pop', 'Label assignment']
+        [
+          'Direct Call',
+          'Pass & Fail',
+          'String Value',
+          'Numeric Limit',
+          'M-num Limit'
+        ],
+        [
+          'If',
+          'If-OK',
+          'Else-if',
+          'Else',
+          'For-init',
+          'For-condition',
+          'For-increment',
+          'For-main',
+          'Break',
+          'Goto'
+        ],
+        ['Message Pop']
       ],
       menuIndex: 0,
       funList: ['testint'],
@@ -233,11 +396,26 @@ export default {
       seqData: [],
       multipleSelection: [],
       varList: [
-        { name: 'var0', type: 'short*', value: ref.alloc('short'), valstr: '1' },
-        { name: 'var1', type: 'char*', value: Buffer.from('TCPIP0::192.168.19.3::INSTR\0'), valstr: 'TCPIP0::192.168.19.3::INSTR' },
+        {
+          name: 'var0',
+          type: 'short*',
+          value: ref.alloc('short'),
+          valstr: '1'
+        },
+        {
+          name: 'var1',
+          type: 'char*',
+          value: Buffer.from('TCPIP0::192.168.19.3::INSTR\0'),
+          valstr: 'TCPIP0::192.168.19.3::INSTR'
+        },
         { name: 'var2', type: 'long*', value: ref.alloc('long'), valstr: '5' },
         { name: 'var3', type: 'int*', value: ref.alloc('int'), valstr: '0' },
-        { name: 'var4', type: 'long[]', value: new LongArray(5), valstr: '0,0,0,0,0' },
+        {
+          name: 'var4',
+          type: 'long[]',
+          value: new LongArray(5),
+          valstr: '0,0,0,0,0'
+        },
         { name: 'comp', type: '<', value: 100, valstr: '100' }
         // { name: 'var3', type: 'char*', value: Buffer.from('\0'.repeat(64)), valstr: '' },
         // { name: 'var4', type: 'char*', value: Buffer.from('result string.' + '\0'.repeat(64)), valstr: 'result string.' }
@@ -249,39 +427,114 @@ export default {
       messageType: 'none',
       messageTitle: '',
       messageMessage: '',
-      messageButton: []
+      messageButton: [],
+      tableData: [
+        {
+          id: 1,
+          date: '2016-05-02',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          id: 2,
+          date: '2016-05-04',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1517 弄'
+        },
+        {
+          id: 3,
+          date: '2016-05-01',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1519 弄',
+          c: [
+            {
+              id: 31,
+              date: '2016-05-01',
+              name: '王小虎',
+              address: '上海市普陀区金沙江路 1519 弄'
+            },
+            {
+              id: 32,
+              date: '2016-05-01',
+              name: '王小虎',
+              address: '上海市普陀区金沙江路 1519 弄'
+            }
+          ]
+        },
+        {
+          id: 4,
+          date: '2016-05-03',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1516 弄'
+        }
+      ],
+      tableData1: [
+        {
+          id: 1,
+          date: '2016-05-02',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        },
+        {
+          id: 2,
+          date: '2016-05-04',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1517 弄'
+        },
+        {
+          id: 3,
+          date: '2016-05-01',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1519 弄',
+          hasChildren: true
+        },
+        {
+          id: 4,
+          date: '2016-05-03',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1516 弄'
+        }
+      ]
     }
   },
   methods: {
+    showTr: function (row, index) {
+      console.log(index)
+      const show = (row.row._parent ? (row.row._parent._expanded && row.row._parent._show) : true)
+      row.row._show = show
+      return show ? '' : 'display:none;'
+    },
     importSeqFile () {
-      dialog.showOpenDialog({
-        title: 'Import',
-        buttonLabel: 'import',
-        filters: [
-          { name: 'File Type', extensions: ['json', 'zztms'] }
-        ]
-      }).then(result => {
-        console.log(result.filePaths)
-        const fileString = fs.readFileSync(result.filePaths[0], 'utf8')
-        console.log(fileString)
-        this.seqData.push(...JSON.parse(fileString))
-      }).catch(err => {
-        console.log(err)
-      })
+      dialog
+        .showOpenDialog({
+          title: '导入',
+          buttonLabel: '导入',
+          filters: [{ name: 'File Type', extensions: ['json', 'zztms'] }]
+        })
+        .then(result => {
+          console.log(result.filePaths)
+          const fileString = fs.readFileSync(result.filePaths[0], 'utf8')
+          console.log(fileString)
+          this.seqData.push(...JSON.parse(fileString))
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     exportSeqFile () {
-      dialog.showSaveDialog({
-        title: 'Export',
-        buttonLabel: 'save',
-        filters: [
-          { name: 'File Type', extensions: ['json', 'zztms'] }
-        ]
-      }).then(result => {
-        console.log(result)
-        fs.writeFileSync(result.filePath, JSON.stringify(this.seqData))
-      }).catch(err => {
-        console.log(err)
-      })
+      dialog
+        .showSaveDialog({
+          title: '导出',
+          buttonLabel: '保存',
+          filters: [{ name: '文件类型', extensions: ['json', 'zztms'] }]
+        })
+        .then(result => {
+          console.log(result)
+          fs.writeFileSync(result.filePath, JSON.stringify(this.seqData))
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     deleteVal (varIndex) {
       console.log('delete:', varIndex)
@@ -289,7 +542,12 @@ export default {
     },
     insertMessagePop () {
       this.seqData.push({
-        id: 'MessagePop' + this.seqData.length + this.messageType + this.messageTitle + new Date().getTime(),
+        id:
+          'MessagePop' +
+          this.seqData.length +
+          this.messageType +
+          this.messageTitle +
+          new Date().getTime(),
         name: this.messageType + this.seqData.length,
         type: 'MessagePop',
         result: -1,
@@ -309,7 +567,27 @@ export default {
       e.stopPropagation()
     },
     report () {
-      console.log(this)
+      const reportData = [{
+        name: 'report',
+        data: [
+          ['name', 'type', 'result']
+        ]
+      }]
+      this.resultList.forEach(i => reportData[0].data.push([i.name, i.type, i.result]))
+      console.log(reportData)
+      dialog
+        .showSaveDialog({
+          title: '导出报表',
+          buttonLabel: '保存',
+          filters: [{ name: '文件类型', extensions: ['xlsx'] }]
+        })
+        .then(result => {
+          console.log(result)
+          fs.writeFileSync(result.filePath, xlsx.build(reportData))
+        })
+        .catch(err => {
+          console.log(err)
+        })
     },
     showVal (val) {
       return val
@@ -444,7 +722,7 @@ export default {
           if (valstr2array) {
             console.log(valstr2array)
             row.value = new LongArray(valstr2array)
-            console.log(typeof (row.value), row.value)
+            console.log(typeof row.value, row.value)
           } else {
             console.log('error long[]')
           }
@@ -506,33 +784,53 @@ export default {
     },
     type2realType (type) {
       switch (type) {
-        case 'int[]': return IntArray
-        case 'long[]': return LongArray
-        case 'short[]': return ShortArray
-        case 'float[]': return FloatArray
-        case 'double[]': return DoubleArray
-        default: return type
+        case 'int[]':
+          return IntArray
+        case 'long[]':
+          return LongArray
+        case 'short[]':
+          return ShortArray
+        case 'float[]':
+          return FloatArray
+        case 'double[]':
+          return DoubleArray
+        default:
+          return type
       }
     },
     run () {
       this.resultList = []
       for (const item of this.multipleSelection) {
-        if (this.menuGroup === 0) {
+        if (item.type === 'Direct Call' || item.type === 'Pass & Fail' || item.type === 'String Value' || item.type === 'Numeric Limit' || item.type === 'M-num Limit') {
           console.log('seq:', item)
           const funName = item.param.func
           let retType = 'void'
           if (item.param.paramList[0] !== 'void') {
-            retType = this.varList.find(i => i.name === item.param.paramList[0]).type
+            retType = this.varList.find(i => i.name === item.param.paramList[0])
+              .type
           }
-          const paramType = item.param.paramList.slice(1).map(i => this.type2realType(this.varList.find(j => j.name === i).type))
+          const paramType = item.param.paramList
+            .slice(1)
+            .map(i =>
+              this.type2realType(this.varList.find(j => j.name === i).type)
+            )
           console.log('run:\t', funName, retType, paramType)
-          const dll = ffi.Library(item.param.path, { [funName]: [retType, paramType] })
-          const params = item.param.paramList.slice(1).map(i => this.varList.find(j => j.name === i).value)
-          console.log(params)
+          const dll = ffi.Library(item.param.path, {
+            [funName]: [retType, paramType]
+          })
+          const params = item.param.paramList
+            .slice(1)
+            .map(i => this.varList.find(j => j.name === i).value)
+          console.log('dllFuncParams', params)
           const dllResult = dll[funName](...params)
+          console.log('dllResult:', dllResult)
           if (item.param.paramList[0] !== 'void') {
-            const p0 = this.varList.find(i => i.name === item.param.paramList[0])
-            if (p0.type === 'int' || p0.type === 'long' || p0.type === 'short' || p0.type === 'long long') {
+            const p0 = this.varList.find(
+              i => i.name === item.param.paramList[0]
+            )
+            console.log('p0:', p0)
+            if (this.isints(p0.type)) {
+              console.log('isint')
               p0.valstr = String(dllResult)
               p0.value = Number(dllResult)
             } else if (p0.type === 'string' || p0.type === 'char*') {
@@ -541,11 +839,11 @@ export default {
           }
           console.log(dllResult)
           for (const it of this.varList) {
-            if (it.type === 'int*' || it.type === 'short*' || it.type === 'long*' || it.type === 'long long*' || it.type === 'float*' || it.type === 'double*') {
+            if (this.ispointers(it.type)) {
               it.valstr = String(it.value.deref())
             } else if (it.type === 'char*' || it.type === 'string') {
               it.valstr = ref.readCString(it.value, 0)
-            } else if (it.type === 'int[]' || it.type === 'short[]' || it.type === 'long[]' || it.type === 'long long[]' || it.type === 'float[]' || it.type === 'double[]') {
+            } else if (this.isarrays(it.type)) {
               it.valstr = JSON.stringify(it.value)
             }
           }
@@ -558,13 +856,15 @@ export default {
           } else if (item.type === 'Pass & Fail') {
             try {
               const ao = item.param.argObj
-              console.log(ao)
+              console.log('pass&fail argObj:', ao)
               for (const i in ao) {
                 console.log(i, ao[i])
                 if (ao[i]) {
                   const varResult = this.varList.find(j => j.name === i)
                   console.log('varResult:', varResult)
-                  item.result = Number(this.val2result(varResult.type, varResult.value))
+                  item.result = Number(
+                    this.val2result(varResult.type, varResult.value)
+                  )
                   break
                 }
               }
@@ -578,7 +878,17 @@ export default {
               for (const i in ao) {
                 console.log(i, ao[i])
                 if (ao[i]) {
-                  item.result = Number(ref.readCString(this.varList.find(j => j.name === i).value, 0) === ref.readCString(this.varList.find(j => j.name === item.param.argList[0]).value, 0))
+                  item.result = Number(
+                    ref.readCString(
+                      this.varList.find(j => j.name === i).value,
+                      0
+                    ) ===
+                    ref.readCString(
+                      this.varList.find(j => j.name === item.param.argList[0])
+                        .value,
+                      0
+                    )
+                  )
                   break
                 }
               }
@@ -603,7 +913,8 @@ export default {
                   let resultCompare = true
                   for (const tv of tvCompare) {
                     console.log('tv:', tv)
-                    resultCompare = resultCompare && eval(varResult + tv.type + tv.value)
+                    resultCompare =
+                      resultCompare && eval(varResult + tv.type + tv.value)
                   }
                   item.result = Number(resultCompare)
                   break
@@ -628,9 +939,18 @@ export default {
               console.log('aol:', aol)
               for (const item of aol) {
                 const n = this.varList.find(j => j.name === item)
-                if (n.type === 'int' || n.type === 'short' || n.type === 'long') { argn = n.value }
-                if (n.type === 'int*' || n.type === 'short*' || n.type === 'long*') { argn = n.value.deref() }
-                if (n.type === 'int[]' || n.type === 'short[]' || n.type === 'long[]' || n.type === 'float[]' || n.type === 'double[]') {
+                console.log('number:', n)
+                if (this.isints(n.type)) {
+                  argn = n.value
+                }
+                if (
+                  n.type === 'int*' ||
+                  n.type === 'short*' ||
+                  n.type === 'long*'
+                ) {
+                  argn = n.value.deref()
+                }
+                if (this.isarrays(n.type)) {
                   arga.length = 0
                   for (let i = 0; i < n.value.length; i++) {
                     arga.push(n.value[i])
@@ -647,7 +967,8 @@ export default {
               for (let i = 0; i < argn; i++) {
                 for (const tv of tvCompare) {
                   console.log('tvi:', tv, i)
-                  resultCompare = resultCompare && eval(arga[i] + tv.type + tv.value)
+                  resultCompare =
+                    resultCompare && eval(arga[i] + tv.type + tv.value)
                 }
               }
               item.result = Number(resultCompare)
@@ -656,18 +977,42 @@ export default {
             }
           }
         } else if (item.type === 'MessagePop') {
-          dialog.showMessageBox({
-            type: item.param.type,
-            title: item.param.title,
-            message: item.param.msg,
-            buttons: item.param.paramList
-          }).then(res => {
-            console.log(res.response)
-            item.result = res.response
-          })
+          dialog
+            .showMessageBox({
+              type: item.param.type,
+              title: this.varList.find(i => i.name === item.param.title).valstr,
+              message: this.varList.find(i => i.name === item.param.msg).valstr,
+              buttons: item.param.paramList
+            })
+            .then(res => {
+              console.log(res.response)
+              item.result = res.response
+            })
         }
         this.resultList.push(item)
       }
+    },
+    isints (s) {
+      return s === 'int' ||
+              s === 'long' ||
+              s === 'short' ||
+              s === 'long long'
+    },
+    ispointers (s) {
+      return s === 'int*' ||
+              s === 'short*' ||
+              s === 'long*' ||
+              s === 'long long*' ||
+              s === 'float*' ||
+              s === 'double*'
+    },
+    isarrays (s) {
+      return s === 'int[]' ||
+              s === 'short[]' ||
+              s === 'long[]' ||
+              s === 'long long[]' ||
+              s === 'float[]' ||
+              s === 'double[]'
     },
     val2result (type, val) {
       console.log(type, val)
@@ -696,23 +1041,7 @@ export default {
     test () {
       console.log(this.$data)
       try {
-        console.log(this.varList)
-        // confirm('hi')
-        ElMessage({
-          showClose: true,
-          message: 'test',
-          type: 'success'
-        })
-        dialog.showMessageBox({
-          type: 'none',
-          title: '弹出框标题',
-          message: '弹出框内容',
-          detail: '123',
-          buttons: ['按钮名字1', '按钮名字2', '按钮名字3']
-        }).then(res => { console.log(res.response) })
-        // const cmdStr = 'node D:\\project\\vscjs\\ts\\test\\test\\tms\\test.js'
-        // const ans = execSync(cmdStr).toString()
-        // console.log(ans)
+        console.log(process.cwd(), __dirname, __filename, process)
       } catch (err) {
         console.log('testerr:\n', err)
       }
@@ -732,16 +1061,19 @@ export default {
       this.multipleSelection = val
     },
     openFile () {
-      dialog.showOpenDialog({
-        properties: ['openFile']
-      }).then(result => {
-        // console.log(result.canceled)
-        console.log('open:\t', result.filePaths)
-        this.words = result.filePaths[0].replace('\\', '/')
-        this.showFun()
-      }).catch(err => {
-        console.log('open file err:', err)
-      })
+      dialog
+        .showOpenDialog({
+          properties: ['openFile']
+        })
+        .then(result => {
+          // console.log(result.canceled)
+          console.log('open:\t', result.filePaths)
+          this.words = result.filePaths[0].replace('\\', '/')
+          this.showFun()
+        })
+        .catch(err => {
+          console.log('open file err:', err)
+        })
     },
     cleanInput () {
       console.log('clean input')
@@ -751,7 +1083,7 @@ export default {
     showFun () {
       const w = this.words.replace('\\', '/')
       console.log('insert:\t', w)
-      const output = execSync('d:\\pefile.exe exports "' + w + '"')
+      const output = execSync('./static/pefile.exe exports "' + w + '"')
       const ans = output.toString()
       const tempList = JSON.parse(ans)
       console.log('funlist:\t', tempList)
@@ -764,7 +1096,12 @@ export default {
     insertItemRun (functionName) {
       const functionType = this.insertItemList[0][this.menuIndex]
       this.seqData.push({
-        id: this.words + functionName + functionType + this.seqData.length + new Date().getTime(),
+        id:
+          this.words +
+          functionName +
+          functionType +
+          this.seqData.length +
+          new Date().getTime(),
         name: functionName + this.seqData.length,
         type: functionType,
         result: -1,
@@ -786,10 +1123,16 @@ export default {
         seqListCombination.push(item)
       }
       this.seqData.push({
-        id: 'combination' + this.seqData.length + seqNameList.map(i => i[0]).join('') + seqListCombination.length + new Date().getTime(),
+        id:
+          'combination' +
+          this.seqData.length +
+          seqNameList.map(i => i[0]).join('') +
+          seqListCombination.length +
+          new Date().getTime(),
         name: 'seqCombination' + this.seqData.length,
         type: 'Combination',
         result: -1,
+        hasChildren: true,
         param: {
           paramList: seqNameList,
           argObj: {},
@@ -799,44 +1142,15 @@ export default {
       })
     },
     deleteItem () {
-      const idList = this.multipleSelection.map((i) => i.id)
-      idList.forEach((id) => {
+      const idList = this.multipleSelection.map(i => i.id)
+      idList.forEach(id => {
         console.log(id)
-        this.seqData = this.seqData.filter((item) => item.id !== id)
+        this.seqData = this.seqData.filter(item => item.id !== id)
       })
     }
   }
 }
 ipcRenderer.on('menu', (event, arg) => {
   console.log('menu click:', arg)
-  switch (arg) {
-    case 'SequenceDll':
-      // todo
-      break
-    case 'SequenceFlow':
-      // todo
-      break
-    case 'SequenceOther':
-      // todo
-      break
-    case 'SequenceCombination':
-      // todo
-      break
-    case 'RunStep':
-      // todo
-      break
-    case 'RunSelected':
-      // todo
-      break
-    case 'RunAll':
-      // todo
-      break
-    case 'About':
-      // todo
-      break
-    default:
-      console.log('command error!')
-      break
-  }
 })
 </script>

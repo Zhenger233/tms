@@ -89,25 +89,9 @@ const template = [
   {
     label: 'File',
     submenu: [
-      { label: 'Open' },
-      { label: 'Save' },
-      { label: 'Save as...' },
+      { label: 'Open', click: () => { win.webContents.send('menu', 'Open') } },
+      { label: 'Save as', click: () => { win.webContents.send('menu', 'Save') } },
       { role: 'quit' }
-    ]
-  },
-  // { role: 'editMenu' }
-  {
-    label: 'Edit',
-    submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
-      { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      { role: 'delete' },
-      { type: 'separator' },
-      { role: 'selectAll' }
     ]
   },
   // { role: 'viewMenu' }
@@ -135,59 +119,13 @@ const template = [
     ]
   },
   {
-    label: 'Sequence',
-    submenu: [
-      {
-        label: 'Insert',
-        submenu: [
-          {
-            label: 'Dll',
-            click: () => {
-              win.webContents.send('menu', 'SequenceDll')
-              console.log('click menu', require('ffi-napi').Library('d:/hi.dll', { testint: ['int', ['int']] }).testint(5, 6))
-            }
-          },
-          {
-            label: 'Flow',
-            click: () => { win.webContents.send('menu', 'SequenceFlow') }
-          },
-          {
-            label: 'Other',
-            click: () => { win.webContents.send('menu', 'SequenceOther') }
-          }
-        ]
-      },
-      {
-        label: 'Combinate',
-        click: () => { win.webContents.send('menu', 'SequenceCombination') }
-      }
-    ]
-  },
-  {
-    label: 'Run',
-    submenu: [
-      {
-        label: 'Step',
-        click: () => { win.webContents.send('menu', 'RunStep') }
-      },
-      {
-        label: 'All(selected)',
-        click: () => { win.webContents.send('menu', 'RunSelected') }
-      },
-      {
-        label: 'All',
-        click: () => { win.webContents.send('menu', 'RunAll') }
-      }
-    ]
-  },
-  {
     role: 'help',
     submenu: [
       {
         label: 'Learn More',
         click: async () => {
           const { shell } = require('electron')
-          await shell.openExternal('https://electronjs.org')
+          await shell.openExternal('https://github.com/Zhenger233/tms')
         }
       },
       {
