@@ -344,13 +344,14 @@
 </template>
 
 <script>
+// import getExportFunctionList from './getExportFunctionList'
 // import TodoListItem from '@/components/TodoListItem.vue'
-import { ElMessage } from 'element-plus'
 const require = window.require
-const { resolve } = require('path')
 const { dialog } = require('electron').remote
 const ffi = require('ffi-napi')
 const ref = require('ref-napi')
+const StructType = require('ref-struct-napi')
+// const ArrayType = window.ArrayType = window.electron.remote.getGlobal('ArrayType')
 const ArrayType = require('ref-array-napi')
 const IntArray = ArrayType('int')
 const LongArray = ArrayType('long')
@@ -358,9 +359,173 @@ const ShortArray = ArrayType('short')
 const FloatArray = ArrayType('float')
 const DoubleArray = ArrayType('double')
 const { ipcRenderer } = require('electron')
-const execSync = window.require('child_process').execSync
+const execSync = require('child_process').execSync
 const fs = require('fs')
 const xlsx = require('node-xlsx')
+
+const CHAR = ref.types.uchar
+const BYTE = ref.types.uchar
+const WORD = ref.types.uint16
+const DWORD = ref.types.uint32
+const LONG = ref.types.int32
+const ULONG = ref.types.uint32
+const ULONGLONG = ref.types.uint64
+const BOOL = ref.types.bool
+
+const IMAGE_NT_OPTIONAL_HDR32_MAGIC = 0x10b
+const IMAGE_DIRECTORY_ENTRY_EXPORT = 0
+const IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
+
+const IMAGE_DOS_HEADER = StructType({
+  e_magic: WORD,
+  e_cblp: WORD,
+  e_cp: WORD,
+  e_crlc: WORD,
+  e_cparhdr: WORD,
+  e_minalloc: WORD,
+  e_maxalloc: WORD,
+  e_ss: WORD,
+  e_sp: WORD,
+  e_csum: WORD,
+  e_ip: WORD,
+  e_cs: WORD,
+  e_lfarlc: WORD,
+  e_ovno: WORD,
+  e_res: ArrayType(WORD, 4),
+  e_oemid: WORD,
+  e_oeminfo: WORD,
+  e_res2: ArrayType(WORD, 10),
+  e_lfanew: LONG
+})
+
+const IMAGE_FILE_HEADER = StructType({
+  Machine: WORD,
+  NumberOfSections: WORD,
+  TimeDateStamp: DWORD,
+  PointerToSymbolTable: DWORD,
+  NumberOfSymbols: DWORD,
+  SizeOfOptionalHeader: WORD,
+  Characteristics: WORD
+})
+
+const IMAGE_DATA_DIRECTORY = StructType({
+  VirtualAddress: DWORD,
+  Size: DWORD
+})
+
+const IMAGE_OPTIONAL_HEADER32 = StructType({
+  Magic: WORD,
+  MajorLinkerVersion: BYTE,
+  MinorLinkerVersion: BYTE,
+  SizeOfCode: DWORD,
+  SizeOfInitializedData: DWORD,
+  SizeOfUninitializedData: DWORD,
+  AddressOfEntryPoint: DWORD,
+  BaseOfCode: DWORD,
+  BaseOfData: DWORD,
+  ImageBase: DWORD,
+  SectionAlignment: DWORD,
+  FileAlignment: DWORD,
+  MajorOperatingSystemVersion: WORD,
+  MinorOperatingSystemVersion: WORD,
+  MajorImageVersion: WORD,
+  MinorImageVersion: WORD,
+  MajorSubsystemVersion: WORD,
+  MinorSubsystemVersion: WORD,
+  Win32VersionValue: DWORD,
+  SizeOfImage: DWORD,
+  SizeOfHeaders: DWORD,
+  CheckSum: DWORD,
+  Subsystem: WORD,
+  DllCharacteristics: WORD,
+  SizeOfStackReserve: DWORD,
+  SizeOfStackCommit: DWORD,
+  SizeOfHeapReserve: DWORD,
+  SizeOfHeapCommit: DWORD,
+  LoaderFlags: DWORD,
+  NumberOfRvaAndSizes: DWORD,
+  DataDirectory: ArrayType(IMAGE_DATA_DIRECTORY, IMAGE_NUMBEROF_DIRECTORY_ENTRIES)
+})
+
+const IMAGE_OPTIONAL_HEADER64 = StructType({
+  Magic: WORD,
+  MajorLinkerVersion: BYTE,
+  MinorLinkerVersion: BYTE,
+  SizeOfCode: DWORD,
+  SizeOfInitializedData: DWORD,
+  SizeOfUninitializedData: DWORD,
+  AddressOfEntryPoint: DWORD,
+  BaseOfCode: DWORD,
+  ImageBase: ULONGLONG,
+  SectionAlignment: DWORD,
+  FileAlignment: DWORD,
+  MajorOperatingSystemVersion: WORD,
+  MinorOperatingSystemVersion: WORD,
+  MajorImageVersion: WORD,
+  MinorImageVersion: WORD,
+  MajorSubsystemVersion: WORD,
+  MinorSubsystemVersion: WORD,
+  Win32VersionValue: DWORD,
+  SizeOfImage: DWORD,
+  SizeOfHeaders: DWORD,
+  CheckSum: DWORD,
+  Subsystem: WORD,
+  DllCharacteristics: WORD,
+  SizeOfStackReserve: ULONGLONG,
+  SizeOfStackCommit: ULONGLONG,
+  SizeOfHeapReserve: ULONGLONG,
+  SizeOfHeapCommit: ULONGLONG,
+  LoaderFlags: DWORD,
+  NumberOfRvaAndSizes: DWORD,
+  DataDirectory: ArrayType(IMAGE_DATA_DIRECTORY, IMAGE_NUMBEROF_DIRECTORY_ENTRIES)
+})
+
+const IMAGE_NT_HEADERS32 = StructType({
+  Signature: DWORD,
+  FileHeader: IMAGE_FILE_HEADER,
+  OptionalHeader: IMAGE_OPTIONAL_HEADER32
+})
+
+const IMAGE_NT_HEADERS64 = StructType({
+  Signature: DWORD,
+  FileHeader: IMAGE_FILE_HEADER,
+  OptionalHeader: IMAGE_OPTIONAL_HEADER64
+})
+
+const IMAGE_SECTION_HEADER = StructType({
+  Name: ArrayType(BYTE, 8),
+  PhysicalAddress: DWORD,
+  VirtualAddress: DWORD,
+  SizeOfRawData: DWORD,
+  PointerToRawData: DWORD,
+  PointerToRelocations: DWORD,
+  PointerToLinenumbers: DWORD,
+  NumberOfRelocations: WORD,
+  NumberOfLinenumbers: WORD,
+  Characteristics: DWORD
+})
+
+const IMAGE_IMPORT_DESCRIPTOR = StructType({
+  OriginalFirstThunk: DWORD,
+  TimeDateStamp: DWORD,
+  ForwarderChain: DWORD,
+  Name: DWORD,
+  FirstThunk: DWORD
+})
+
+const IMAGE_EXPORT_DIRECTORY = StructType({
+  Characteristics: DWORD,
+  TimeDateStamp: DWORD,
+  MajorVersion: WORD,
+  MinorVersion: WORD,
+  Name: DWORD,
+  Base: DWORD,
+  NumberOfFunctions: DWORD,
+  NumberOfNames: DWORD,
+  AddressOfFunctions: DWORD,
+  AddressOfNames: DWORD,
+  AddressOfNameOrdinals: DWORD
+})
 
 export default {
   name: 'TodoList',
@@ -428,46 +593,6 @@ export default {
       messageTitle: '',
       messageMessage: '',
       messageButton: [],
-      tableData: [
-        {
-          id: 1,
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        },
-        {
-          id: 2,
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1517 弄'
-        },
-        {
-          id: 3,
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄',
-          c: [
-            {
-              id: 31,
-              date: '2016-05-01',
-              name: '王小虎',
-              address: '上海市普陀区金沙江路 1519 弄'
-            },
-            {
-              id: 32,
-              date: '2016-05-01',
-              name: '王小虎',
-              address: '上海市普陀区金沙江路 1519 弄'
-            }
-          ]
-        },
-        {
-          id: 4,
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
-        }
-      ],
       tableData1: [
         {
           id: 1,
@@ -498,7 +623,7 @@ export default {
     }
   },
   methods: {
-    showTr: function (row, index) {
+    showTr (row, index) {
       console.log(index)
       const show = (row.row._parent ? (row.row._parent._expanded && row.row._parent._show) : true)
       row.row._show = show
@@ -1042,6 +1167,7 @@ export default {
       console.log(this.$data)
       try {
         console.log(process.cwd(), __dirname, __filename, process)
+        console.log(this.getExportFunctionList('d:/Math.dll'))
       } catch (err) {
         console.log('testerr:\n', err)
       }
@@ -1083,14 +1209,15 @@ export default {
     showFun () {
       const w = this.words.replace('\\', '/')
       console.log('insert:\t', w)
-      const output = execSync('./static/pefile.exe exports "' + w + '"')
-      const ans = output.toString()
-      const tempList = JSON.parse(ans)
+      // const output = execSync('d:/pefile.exe exports "' + w + '"')
+      // const ans = output.toString()
+      // const tempList = JSON.parse(ans)
+      // for (const p of tempList) {
+      //   this.funList.push(p[1])
+      // }
+      const tempList = this.getExportFunctionList(w)
       console.log('funlist:\t', tempList)
-      this.funList = []
-      for (const p of tempList) {
-        this.funList.push(p[1])
-      }
+      this.funList = tempList
       console.log('insert ', this.funList.length, ' functions')
     },
     insertItemRun (functionName) {
@@ -1147,6 +1274,99 @@ export default {
         console.log(id)
         this.seqData = this.seqData.filter(item => item.id !== id)
       })
+    },
+    getDosHeader (buffer) {
+      return new IMAGE_DOS_HEADER(buffer.slice(0, IMAGE_DOS_HEADER.size))
+    },
+
+    getFileHeader (buffer) {
+      const dosHeader = this.getDosHeader(buffer)
+      return new IMAGE_FILE_HEADER(buffer.slice(dosHeader.e_lfanew + 4, dosHeader.e_lfanew + 4 + IMAGE_FILE_HEADER.size))
+    },
+
+    isBit32 (buffer) {
+      return this.getFileHeader(buffer).Machine === 0x14c
+    },
+
+    getNTHeader (buffer) {
+      const dosHeader = this.getDosHeader(buffer)
+      if (this.isBit32(buffer)) {
+        return new IMAGE_NT_HEADERS32(buffer.slice(dosHeader.e_lfanew, dosHeader.e_lfanew + IMAGE_NT_HEADERS32.size))
+      } else {
+        return new IMAGE_NT_HEADERS64(buffer.slice(dosHeader.e_lfanew, dosHeader.e_lfanew + IMAGE_NT_HEADERS64.size))
+      }
+    },
+
+    getOptionalHeader (buffer) {
+      const ntHeader = this.getNTHeader(buffer)
+      return ntHeader.OptionalHeader
+    },
+
+    getSectionHeader (buffer, index = 0) {
+      const dosHeader = this.getDosHeader(buffer)
+      const IMAGE_NT_HEADER_SIZE = this.isBit32(buffer) ? IMAGE_NT_HEADERS32.size : IMAGE_NT_HEADERS64.size
+      return new IMAGE_SECTION_HEADER(buffer.slice(dosHeader.e_lfanew + IMAGE_NT_HEADER_SIZE + index * IMAGE_SECTION_HEADER.size, dosHeader.e_lfanew + IMAGE_NT_HEADER_SIZE + IMAGE_SECTION_HEADER.size + (index + 1) * IMAGE_SECTION_HEADER.size))
+    },
+
+    rvaToFa (buffer, rva) {
+      const fileHeader = this.getFileHeader(buffer)
+      const optionalHeader = this.getOptionalHeader(buffer)
+
+      if (rva < optionalHeader.SizeOfHeaders) {
+        return rva
+      }
+
+      for (let i = 0; i < fileHeader.NumberOfSections; i++) {
+        var sectionHeader = this.getSectionHeader(buffer, i)
+        if (rva >= sectionHeader.VirtualAddress && rva < sectionHeader.VirtualAddress + sectionHeader.SizeOfRawData) {
+          var ans = rva - sectionHeader.VirtualAddress + sectionHeader.PointerToRawData
+          // console.log('rva:', rva, '\tans:', ans)
+          return ans
+        }
+      }
+    },
+
+    getDataDirectory (buffer, index) {
+      const ntHeader = this.getNTHeader(buffer)
+      const dataDirectory = ntHeader.OptionalHeader.DataDirectory
+      const dataDirectoryRva = dataDirectory[index].VirtualAddress
+      // console.log('dataDirectoryRva:', dataDirectoryRva)
+      return this.rvaToFa(buffer, dataDirectoryRva)
+    },
+
+    getExportFunctionList (filePath = 'D:\\hi.dll') {
+      const names = []
+      const data = fs.readFileSync(filePath)
+      const exportDirectoryStart = this.getDataDirectory(data, IMAGE_DIRECTORY_ENTRY_EXPORT)
+      const exportDirectory = new IMAGE_EXPORT_DIRECTORY(data.slice(exportDirectoryStart, exportDirectoryStart + IMAGE_EXPORT_DIRECTORY.size))
+
+      const numberOfFunctions = exportDirectory.NumberOfFunctions
+      console.log('numberOfFunctions:', numberOfFunctions)
+      console.log('functionAddress:', exportDirectory.AddressOfFunctions)
+      const functions = []
+      for (let i = 0; i < numberOfFunctions; i++) {
+        const functionStart = this.rvaToFa(data, exportDirectory.AddressOfFunctions + i * 4)
+        const func = data.slice(functionStart, functionStart + 4).readInt32LE().toString(16)
+        functions.push(func)
+      }
+      // console.log('functions:', functions)
+
+      const addressOfNames = []
+      for (let i = 0; i < exportDirectory.NumberOfNames; i++) {
+        const nameStart = this.rvaToFa(data, exportDirectory.AddressOfNames + i * 4)
+        // console.log('nameStart:', nameStart)
+        const nameAddress = data.slice(nameStart, nameStart + 4).readInt32LE()
+        addressOfNames.push(nameAddress)
+      }
+      // console.log('addressOfNames:', addressOfNames)
+
+      for (let i = 0; i < addressOfNames.length; i++) {
+        const nameStart = this.rvaToFa(data, addressOfNames[i])
+        const name = ref.readCString(data, nameStart)
+        names.push(name)
+      }
+      console.log('names:', names)
+      return names
     }
   }
 }
