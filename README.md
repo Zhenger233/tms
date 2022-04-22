@@ -45,7 +45,7 @@ __declspec(dllexport) void testmnl(short* errOccurred, long* errCode, char* errM
 ```
 
 ```bash
-g++ -c C:\Users\Zhenger\Desktop\ts\try\add.cpp ; g++ C:\Users\Zhenger\Desktop\ts\try\add.o -shared -fPIC -o d:\hi.dll
+g++ C:\Users\Zhenger\Desktop\ts\try\add.cpp -shared -fPIC -o d:\hi.dll
 ```
 
 ```javascript

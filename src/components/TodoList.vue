@@ -359,7 +359,6 @@ const ShortArray = ArrayType('short')
 const FloatArray = ArrayType('float')
 const DoubleArray = ArrayType('double')
 const { ipcRenderer } = require('electron')
-const execSync = require('child_process').execSync
 const fs = require('fs')
 const xlsx = require('node-xlsx')
 
@@ -505,14 +504,6 @@ const IMAGE_SECTION_HEADER = StructType({
   Characteristics: DWORD
 })
 
-const IMAGE_IMPORT_DESCRIPTOR = StructType({
-  OriginalFirstThunk: DWORD,
-  TimeDateStamp: DWORD,
-  ForwarderChain: DWORD,
-  Name: DWORD,
-  FirstThunk: DWORD
-})
-
 const IMAGE_EXPORT_DIRECTORY = StructType({
   Characteristics: DWORD,
   TimeDateStamp: DWORD,
@@ -592,34 +583,7 @@ export default {
       messageType: 'none',
       messageTitle: '',
       messageMessage: '',
-      messageButton: [],
-      tableData1: [
-        {
-          id: 1,
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        },
-        {
-          id: 2,
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1517 弄'
-        },
-        {
-          id: 3,
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄',
-          hasChildren: true
-        },
-        {
-          id: 4,
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
-        }
-      ]
+      messageButton: []
     }
   },
   methods: {
@@ -640,7 +604,9 @@ export default {
           console.log(result.filePaths)
           const fileString = fs.readFileSync(result.filePaths[0], 'utf8')
           console.log(fileString)
-          this.seqData.push(...JSON.parse(fileString))
+          const data = JSON.parse(fileString)
+          this.seqData.push(...data.seqData)
+          this.varList.push(...data.varList)
         })
         .catch(err => {
           console.log(err)
@@ -655,7 +621,11 @@ export default {
         })
         .then(result => {
           console.log(result)
-          fs.writeFileSync(result.filePath, JSON.stringify(this.seqData))
+          const data = {
+            seqData: this.seqData,
+            varList: this.varList
+          }
+          fs.writeFileSync(result.filePath, JSON.stringify(data))
         })
         .catch(err => {
           console.log(err)
@@ -954,8 +924,8 @@ export default {
               i => i.name === item.param.paramList[0]
             )
             console.log('p0:', p0)
-            if (this.isints(p0.type)) {
-              console.log('isint')
+            if (this.isnums(p0.type)) {
+              console.log('isnum')
               p0.valstr = String(dllResult)
               p0.value = Number(dllResult)
             } else if (p0.type === 'string' || p0.type === 'char*') {
@@ -1122,6 +1092,14 @@ export default {
               s === 'long' ||
               s === 'short' ||
               s === 'long long'
+    },
+    isnums (s) {
+      return s === 'int' ||
+              s === 'long' ||
+              s === 'short' ||
+              s === 'long long' ||
+              s === 'float' ||
+              s === 'double'
     },
     ispointers (s) {
       return s === 'int*' ||
