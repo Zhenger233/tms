@@ -2,7 +2,7 @@
 
 import { app, protocol, BrowserWindow, Menu, ipcMain } from 'electron'
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
-// import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
+// const { getExportFunctionList1 } = require('./components/utils/getExportFunctionList')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // global.ArrayType = require('ref-array-napi')
@@ -134,6 +134,10 @@ const template = [
       {
         label: 'About',
         click: () => { win.webContents.send('menu', 'About') }
+      },
+      {
+        label: 'Test',
+        click: () => { win.webContents.send('menu', 'Test') }
       }
     ]
   }

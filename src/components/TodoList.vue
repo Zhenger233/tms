@@ -236,7 +236,6 @@
           <div style="margin-top: 20px">
             <el-button @click="toggleSelection(seqData)">Toggle</el-button>
             <el-button @click="deleteItem">Delete</el-button>
-            <el-button @click="test">Test</el-button>
             <el-button @click="insertItemCombination">Combine</el-button>
             <el-button @click="run">Run</el-button>
             <el-button @click="report">Report</el-button>
@@ -268,16 +267,17 @@
             >
             </el-table-column>
           </el-table>
+          <el-button @click="test">Test</el-button>
         </el-main>
       </el-container>
-      <el-container style="border: 1px solid #eee; margin-right: 0">
+      <el-container style="border: 1px solid #eee; margin-right: 0;overscroll-behavior: none;">
         <el-aside width="400">
           <div style="text-align:center;margin-top: 20px;font-size:20px;bold">
             Variable List
           </div>
           <el-table
             :data="varList"
-            style="margin-right: 0; width: 100%"
+            style="margin-right: 0; width: 100%;"
           >
             <el-table-column
               label="name"
@@ -298,12 +298,20 @@
               align="center"
             >
               <template #default="scope">
-                <el-input
+                <!-- <el-input
                   v-model="scope.row.type"
                   type="text"
                   @input="valChange(scope.row)"
                   v-on:keyup.enter="addVar"
-                ></el-input>
+                ></el-input> -->
+                <el-autocomplete
+                  v-model="scope.row.type"
+                  :fetch-suggestions="querySearchValType"
+                  clearable
+                  class="inline-input"
+                  placeholder="int"
+                  @select="handleSelect"
+                />
               </template>
             </el-table-column>
             <el-table-column
@@ -319,6 +327,7 @@
                   @input="valChange(scope.row)"
                   v-on:keyup.enter="addVar"
                 ></el-input>
+
               </template>
             </el-table-column>
             <el-table-column width="30">
@@ -344,14 +353,13 @@
 </template>
 
 <script>
-// import getExportFunctionList from './getExportFunctionList'
-// import TodoListItem from '@/components/TodoListItem.vue'
+// import getExportFunctionList1 from '@/components/utils/getExportFunctionList.js'
 const require = window.require
+// const { CHAR, BYTE, WORD, DWORD, LONG, ULONG, ULONGLONG, BOOL } = require('./getExportFunctionList.js')
 const { dialog } = require('electron').remote
 const ffi = require('ffi-napi')
 const ref = require('ref-napi')
 const StructType = require('ref-struct-napi')
-// const ArrayType = window.ArrayType = window.electron.remote.getGlobal('ArrayType')
 const ArrayType = require('ref-array-napi')
 const IntArray = ArrayType('int')
 const LongArray = ArrayType('long')
@@ -362,6 +370,10 @@ const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const xlsx = require('node-xlsx')
 
+const IMAGE_NT_OPTIONAL_HDR32_MAGIC = 0x10b
+const IMAGE_DIRECTORY_ENTRY_EXPORT = 0
+const IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
+
 const CHAR = ref.types.uchar
 const BYTE = ref.types.uchar
 const WORD = ref.types.uint16
@@ -370,10 +382,6 @@ const LONG = ref.types.int32
 const ULONG = ref.types.uint32
 const ULONGLONG = ref.types.uint64
 const BOOL = ref.types.bool
-
-const IMAGE_NT_OPTIONAL_HDR32_MAGIC = 0x10b
-const IMAGE_DIRECTORY_ENTRY_EXPORT = 0
-const IMAGE_NUMBEROF_DIRECTORY_ENTRIES = 16
 
 const IMAGE_DOS_HEADER = StructType({
   e_magic: WORD,
@@ -577,6 +585,9 @@ export default {
         // { name: 'var4', type: 'char*', value: Buffer.from('result string.' + '\0'.repeat(64)), valstr: 'result string.' }
       ],
       varListMax: 6,
+      varTypes: [
+        'char', 'short', 'long', 'int', 'long long', 'float', 'double', 'char*', 'short*', 'long*', 'int*', 'long long*', 'float*', 'double*', 'string', 'short[]', 'long[]', 'int[]', 'long long[]', 'float[]', 'double[]', '>', '>=', '<', '<=', '=='
+      ],
       resultList: [],
       menuGroup: 0,
       messageTypeList: ['none', 'info', 'warning', 'error'],
@@ -697,6 +708,16 @@ export default {
     },
     valChange (row) {
       switch (row.type) {
+        case 'char': {
+          console.log('char')
+          if (!isNaN(Number(row.valstr))) {
+            console.log('changing...')
+            row.value = Number(row.valstr) && 0xff
+          } else {
+            console.log('error char')
+          }
+          break
+        }
         case 'short': {
           console.log('short')
           if (!isNaN(Number(row.valstr))) {
@@ -860,8 +881,34 @@ export default {
         case '<': {
           console.log('compare')
           row.value = Number(row.valstr)
+          break
+        }
+        default: {
+          console.log('default')
+          // change input box border color to red
+          break
         }
       }
+    },
+    // createFilter (queryString) {
+    //   return (item) => {
+    //     return item.value.toUpperCase().match(queryString.toUpperCase());
+    //   }
+    // },
+    querySearchValType (queryString, cb) {
+      const createFilter = (queryString) => {
+        return (item) => {
+          return item.value.indexOf(queryString) > -1
+        }
+      }
+      let results = this.varTypes.toString().split(',').map(i => { return { value: i } })
+      results = queryString
+        ? results.filter(createFilter(queryString))
+        : results
+      cb(results)
+    },
+    handleSelect (item) {
+      console.log(item)
     },
     addVar () {
       this.varList.push({
@@ -1147,7 +1194,7 @@ export default {
         console.log(process.cwd(), __dirname, __filename, process)
         console.log(this.getExportFunctionList('d:/Math.dll'))
       } catch (err) {
-        console.log('testerr:\n', err)
+        console.log('testerror:\n', err)
       }
     },
     toggleSelection (rows) {
@@ -1250,7 +1297,7 @@ export default {
       const idList = this.multipleSelection.map(i => i.id)
       idList.forEach(id => {
         console.log(id)
-        this.seqData = this.seqData.filter(item => item.id !== id)
+        this.seqData = this.$seqData.filter(item => item.id !== id)
       })
     },
     getDosHeader (buffer) {
@@ -1348,7 +1395,19 @@ export default {
     }
   }
 }
+const Test = () => {
+  try {
+    console.log(process.cwd(), __dirname, __filename, process)
+    // console.log(getExportFunctionList1('d:/Math.dll'))
+    // console.log(getExportFunctionList('d:/Math.dll'))
+  } catch (err) {
+    console.log('testerror:\n', err)
+  }
+}
 ipcRenderer.on('menu', (event, arg) => {
-  console.log('menu click:', arg)
+  console.log('menu click1:', event, arg)
+  if (arg === 'Test') {
+    Test()
+  }
 })
 </script>

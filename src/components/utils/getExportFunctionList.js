@@ -268,3 +268,6 @@ function getExportFunctionList (filePath = 'D:\\hi.dll') {
 }
 
 exports.getExportFunctionList = getExportFunctionList
+module.exports = {
+  getExportFunctionList1: getExportFunctionList
+}
