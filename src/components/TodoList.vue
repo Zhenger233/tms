@@ -236,9 +236,8 @@
           <div style="margin-top: 20px">
             <el-button @click="toggleSelection(seqData)">Toggle</el-button>
             <el-button @click="deleteItem">Delete</el-button>
-            <el-button @click="insertItemCombination">Combine</el-button>
+            <!-- <el-button @click="insertItemCombination">Combine</el-button> -->
             <el-button @click="run">Run</el-button>
-            <el-button @click="report">Report</el-button>
             <el-button @click="importSeqFile">Import</el-button>
             <el-button @click="exportSeqFile">Export</el-button>
           </div>
@@ -248,6 +247,11 @@
             tooltip-effect="dark"
             style="width: 100%;margin:top: 20px"
           >
+            <el-table-column
+              prop="runNumber"
+              label="number"
+              width="80"
+            ></el-table-column>
             <el-table-column
               prop="name"
               label="name"
@@ -267,7 +271,8 @@
             >
             </el-table-column>
           </el-table>
-          <el-button @click="test">Test</el-button>
+          <!-- <el-button @click="test">Test</el-button> -->
+          <el-button v-if="showReport" @click="report">Report</el-button>
         </el-main>
       </el-container>
       <el-container style="border: 1px solid #eee; margin-right: 0;overscroll-behavior: none;">
@@ -327,7 +332,6 @@
                   @input="valChange(scope.row)"
                   v-on:keyup.enter="addVar"
                 ></el-input>
-
               </template>
             </el-table-column>
             <el-table-column width="30">
@@ -559,8 +563,15 @@ export default {
       funList: ['testint'],
       funIndex: 0,
       seqData: [],
+      showReport: false,
       multipleSelection: [],
       varList: [
+        {
+          name: 'runNumber',
+          type: 'int',
+          value: 1,
+          valstr: '1'
+        },
         {
           name: 'var0',
           type: 'short*',
@@ -585,7 +596,7 @@ export default {
         // { name: 'var3', type: 'char*', value: Buffer.from('\0'.repeat(64)), valstr: '' },
         // { name: 'var4', type: 'char*', value: Buffer.from('result string.' + '\0'.repeat(64)), valstr: 'result string.' }
       ],
-      varListMax: 6,
+      varListMax: 7,
       varTypes: [
         'char', 'short', 'long', 'int', 'long long', 'float', 'double', 'char*', 'short*', 'long*', 'int*', 'long long*', 'float*', 'double*', 'string', 'short[]', 'long[]', 'int[]', 'long long[]', 'float[]', 'double[]', '>', '>=', '<', '<=', '=='
       ],
@@ -605,6 +616,9 @@ export default {
       row.row._show = show
       return show ? '' : 'display:none;'
     },
+    getRunNumber () {
+      return this.varList.find(i => i.name === 'runNumber').value || 1
+    },
     importSeqFile () {
       dialog
         .showOpenDialog({
@@ -619,6 +633,7 @@ export default {
           const data = JSON.parse(fileString)
           this.seqData.push(...data.seqData)
           this.varList.push(...data.varList)
+          alert('导入成功')
         })
         .catch(err => {
           console.log(err)
@@ -639,6 +654,7 @@ export default {
             varList: this.varList
           }
           fs.writeFileSync(result.filePath, JSON.stringify(data))
+          alert('导出成功')
         })
         .catch(err => {
           console.log(err)
@@ -674,10 +690,10 @@ export default {
       const reportData = [{
         name: 'report',
         data: [
-          ['name', 'type', 'result']
+          ['runNumber', 'name', 'type', 'result']
         ]
       }]
-      this.resultList.forEach(i => reportData[0].data.push([i.name, i.type, i.result]))
+      this.resultList.forEach(i => reportData[0].data.push([i.runNumber, i.name, i.type, i.result]))
       console.log(reportData)
       dialog
         .showSaveDialog({
@@ -688,9 +704,11 @@ export default {
         .then(result => {
           console.log(result)
           fs.writeFileSync(result.filePath, xlsx.build(reportData))
+          alert('导出成功')
         })
         .catch(err => {
           console.log(err)
+          alert('导出失败\n', err)
         })
     },
     showVal (val) {
@@ -940,196 +958,199 @@ export default {
     },
     run () {
       this.resultList = []
-      for (const item of this.multipleSelection) {
-        if (item.type === 'Direct Call' || item.type === 'Pass & Fail' || item.type === 'String Value' || item.type === 'Numeric Limit' || item.type === 'M-num Limit') {
-          console.log('seq:', item)
-          const funName = item.param.func
-          let retType = 'void'
-          if (item.param.paramList[0] !== 'void') {
-            retType = this.varList.find(i => i.name === item.param.paramList[0])
-              .type
-          }
-          const paramType = item.param.paramList
-            .slice(1)
-            .map(i =>
-              this.type2realType(this.varList.find(j => j.name === i).type)
-            )
-          console.log('run:\t', funName, retType, paramType)
-          const dll = ffi.Library(item.param.path, {
-            [funName]: [retType, paramType]
-          })
-          const params = item.param.paramList
-            .slice(1)
-            .map(i => this.varList.find(j => j.name === i).value)
-          console.log('dllFuncParams', params)
-          const dllResult = dll[funName](...params)
-          console.log('dllResult:', dllResult)
-          if (item.param.paramList[0] !== 'void') {
-            const p0 = this.varList.find(
-              i => i.name === item.param.paramList[0]
-            )
-            console.log('p0:', p0)
-            if (this.isnums(p0.type)) {
-              console.log('isnum')
-              p0.valstr = String(dllResult)
-              p0.value = Number(dllResult)
-            } else if (p0.type === 'string' || p0.type === 'char*') {
-              p0.value = p0.valstr = String(dllResult)
+      for (let runnumber = 1; runnumber <= this.getRunNumber(); runnumber++) {
+        for (const item of this.multipleSelection) {
+          if (item.type === 'Direct Call' || item.type === 'Pass & Fail' || item.type === 'String Value' || item.type === 'Numeric Limit' || item.type === 'M-num Limit') {
+            console.log('seq:', item)
+            const funName = item.param.func
+            let retType = 'void'
+            if (item.param.paramList[0] !== 'void') {
+              retType = this.varList.find(i => i.name === item.param.paramList[0])
+                .type
             }
-          }
-          console.log(dllResult)
-          for (const it of this.varList) {
-            if (this.ispointers(it.type)) {
-              it.valstr = String(it.value.deref())
-            } else if (it.type === 'char*' || it.type === 'string') {
-              it.valstr = ref.readCString(it.value, 0)
-            } else if (this.isarrays(it.type)) {
-              it.valstr = JSON.stringify(it.value)
-            }
-          }
-          if (item.type === 'Direct Call') {
-            try {
-              item.result = 1
-            } catch (error) {
-              console.log(error)
-            }
-          } else if (item.type === 'Pass & Fail') {
-            try {
-              const ao = item.param.argObj
-              console.log('pass&fail argObj:', ao)
-              for (const i in ao) {
-                console.log(i, ao[i])
-                if (ao[i]) {
-                  const varResult = this.varList.find(j => j.name === i)
-                  console.log('varResult:', varResult)
-                  item.result = Number(
-                    this.val2result(varResult.type, varResult.value)
-                  )
-                  break
-                }
+            const paramType = item.param.paramList
+              .slice(1)
+              .map(i =>
+                this.type2realType(this.varList.find(j => j.name === i).type)
+              )
+            console.log('run:\t', funName, retType, paramType)
+            const dll = ffi.Library(item.param.path, {
+              [funName]: [retType, paramType]
+            })
+            const params = item.param.paramList
+              .slice(1)
+              .map(i => this.varList.find(j => j.name === i).value)
+            console.log('dllFuncParams', params)
+            const dllResult = dll[funName](...params)
+            console.log('dllResult:', dllResult)
+            if (item.param.paramList[0] !== 'void') {
+              const p0 = this.varList.find(
+                i => i.name === item.param.paramList[0]
+              )
+              console.log('p0:', p0)
+              if (this.isnums(p0.type)) {
+                console.log('isnum')
+                p0.valstr = String(dllResult)
+                p0.value = Number(dllResult)
+              } else if (p0.type === 'string' || p0.type === 'char*') {
+                p0.value = p0.valstr = String(dllResult)
               }
-            } catch (error) {
-              console.log(error)
             }
-          } else if (item.type === 'String Value') {
-            try {
-              const ao = item.param.argObj
-              console.log(ao)
-              for (const i in ao) {
-                console.log(i, ao[i])
-                if (ao[i]) {
-                  item.result = Number(
-                    ref.readCString(
-                      this.varList.find(j => j.name === i).value,
-                      0
-                    ) ===
-                    ref.readCString(
-                      this.varList.find(j => j.name === item.param.argList[0])
-                        .value,
-                      0
+            console.log(dllResult)
+            for (const it of this.varList) {
+              if (this.ispointers(it.type)) {
+                it.valstr = String(it.value.deref())
+              } else if (it.type === 'char*' || it.type === 'string') {
+                it.valstr = ref.readCString(it.value, 0)
+              } else if (this.isarrays(it.type)) {
+                it.valstr = JSON.stringify(it.value)
+              }
+            }
+            if (item.type === 'Direct Call') {
+              try {
+                item.result = 1
+              } catch (error) {
+                console.log(error)
+              }
+            } else if (item.type === 'Pass & Fail') {
+              try {
+                const ao = item.param.argObj
+                console.log('pass&fail argObj:', ao)
+                for (const i in ao) {
+                  console.log(i, ao[i])
+                  if (ao[i]) {
+                    const varResult = this.varList.find(j => j.name === i)
+                    console.log('varResult:', varResult)
+                    item.result = Number(
+                      this.val2result(varResult.type, varResult.value)
                     )
-                  )
-                  break
-                }
-              }
-            } catch (error) {
-              console.log(error)
-            }
-          } else if (item.type === 'Numeric Limit') {
-            try {
-              const ao = item.param.argObj
-              const al = item.param.argList
-              console.log('argObj:', ao, 'argList:', al)
-              for (const i in ao) {
-                if (ao[i]) {
-                  const varResult = this.varList.find(j => j.name === i).value
-                  const tvCompare = []
-                  console.log('length:', al.length)
-                  for (let i = 0; i < al.length; i++) {
-                    console.log(al[i])
-                    tvCompare.push(this.varList.find(j => j.name === al[i]))
+                    break
                   }
-                  console.log('varResult,tvCompare:', varResult, tvCompare)
-                  let resultCompare = true
+                }
+              } catch (error) {
+                console.log(error)
+              }
+            } else if (item.type === 'String Value') {
+              try {
+                const ao = item.param.argObj
+                console.log(ao)
+                for (const i in ao) {
+                  console.log(i, ao[i])
+                  if (ao[i]) {
+                    item.result = Number(
+                      ref.readCString(
+                        this.varList.find(j => j.name === i).value,
+                        0
+                      ) ===
+                      ref.readCString(
+                        this.varList.find(j => j.name === item.param.argList[0])
+                          .value,
+                        0
+                      )
+                    )
+                    break
+                  }
+                }
+              } catch (error) {
+                console.log(error)
+              }
+            } else if (item.type === 'Numeric Limit') {
+              try {
+                const ao = item.param.argObj
+                const al = item.param.argList
+                console.log('argObj:', ao, 'argList:', al)
+                for (const i in ao) {
+                  if (ao[i]) {
+                    const varResult = this.varList.find(j => j.name === i).value
+                    const tvCompare = []
+                    console.log('length:', al.length)
+                    for (let i = 0; i < al.length; i++) {
+                      console.log(al[i])
+                      tvCompare.push(this.varList.find(j => j.name === al[i]))
+                    }
+                    console.log('varResult,tvCompare:', varResult, tvCompare)
+                    let resultCompare = true
+                    for (const tv of tvCompare) {
+                      console.log('tv:', tv)
+                      resultCompare =
+                        resultCompare && eval(varResult + tv.type + tv.value)
+                    }
+                    item.result = Number(resultCompare)
+                    break
+                  }
+                }
+              } catch (error) {
+                console.log(error)
+              }
+            } else if (item.type === 'M-num Limit') {
+              try {
+                const ao = item.param.argObj
+                const al = item.param.argList
+                const aol = []
+                let argn = 0
+                const arga = []
+                console.log('ao:', ao)
+                for (const i in ao) {
+                  if (ao[i]) {
+                    aol.push(i)
+                  }
+                }
+                console.log('aol:', aol)
+                for (const item of aol) {
+                  const n = this.varList.find(j => j.name === item)
+                  console.log('number:', n)
+                  if (this.isints(n.type)) {
+                    argn = n.value
+                  }
+                  if (
+                    n.type === 'int*' ||
+                    n.type === 'short*' ||
+                    n.type === 'long*'
+                  ) {
+                    argn = n.value.deref()
+                  }
+                  if (this.isarrays(n.type)) {
+                    arga.length = 0
+                    for (let i = 0; i < n.value.length; i++) {
+                      arga.push(n.value[i])
+                    }
+                  }
+                }
+                console.log('argn,arga:', argn, arga)
+                const tvCompare = []
+                for (let i = 0; i < al.length; i++) {
+                  console.log('ali:', al[i])
+                  tvCompare.push(this.varList.find(j => j.name === al[i]))
+                }
+                let resultCompare = true
+                for (let i = 0; i < argn; i++) {
                   for (const tv of tvCompare) {
-                    console.log('tv:', tv)
+                    console.log('tvi:', tv, i)
                     resultCompare =
-                      resultCompare && eval(varResult + tv.type + tv.value)
-                  }
-                  item.result = Number(resultCompare)
-                  break
-                }
-              }
-            } catch (error) {
-              console.log(error)
-            }
-          } else if (item.type === 'M-num Limit') {
-            try {
-              const ao = item.param.argObj
-              const al = item.param.argList
-              const aol = []
-              let argn = 0
-              const arga = []
-              console.log('ao:', ao)
-              for (const i in ao) {
-                if (ao[i]) {
-                  aol.push(i)
-                }
-              }
-              console.log('aol:', aol)
-              for (const item of aol) {
-                const n = this.varList.find(j => j.name === item)
-                console.log('number:', n)
-                if (this.isints(n.type)) {
-                  argn = n.value
-                }
-                if (
-                  n.type === 'int*' ||
-                  n.type === 'short*' ||
-                  n.type === 'long*'
-                ) {
-                  argn = n.value.deref()
-                }
-                if (this.isarrays(n.type)) {
-                  arga.length = 0
-                  for (let i = 0; i < n.value.length; i++) {
-                    arga.push(n.value[i])
+                      resultCompare && eval(arga[i] + tv.type + tv.value)
                   }
                 }
+                item.result = Number(resultCompare)
+              } catch (error) {
+                console.log(error)
               }
-              console.log('argn,arga:', argn, arga)
-              const tvCompare = []
-              for (let i = 0; i < al.length; i++) {
-                console.log('ali:', al[i])
-                tvCompare.push(this.varList.find(j => j.name === al[i]))
-              }
-              let resultCompare = true
-              for (let i = 0; i < argn; i++) {
-                for (const tv of tvCompare) {
-                  console.log('tvi:', tv, i)
-                  resultCompare =
-                    resultCompare && eval(arga[i] + tv.type + tv.value)
-                }
-              }
-              item.result = Number(resultCompare)
-            } catch (error) {
-              console.log(error)
             }
+          } else if (item.type === 'MessagePop') {
+            dialog
+              .showMessageBox({
+                type: item.param.type,
+                title: this.varList.find(i => i.name === item.param.title).valstr,
+                message: this.varList.find(i => i.name === item.param.msg).valstr,
+                buttons: item.param.paramList
+              })
+              .then(res => {
+                console.log(res.response)
+                item.result = res.response
+              })
           }
-        } else if (item.type === 'MessagePop') {
-          dialog
-            .showMessageBox({
-              type: item.param.type,
-              title: this.varList.find(i => i.name === item.param.title).valstr,
-              message: this.varList.find(i => i.name === item.param.msg).valstr,
-              buttons: item.param.paramList
-            })
-            .then(res => {
-              console.log(res.response)
-              item.result = res.response
-            })
+          this.resultList.push({ runNumber: runnumber, ...item })
         }
-        this.resultList.push(item)
+        this.showReport = true
       }
     },
     isints (s) {
@@ -1187,8 +1208,9 @@ export default {
       }
     },
     test () {
-      console.log(this.$data)
+      console.log('data:', this.$data)
       try {
+        console.log('runNumber:', this.varList.find(i => i.name === 'runNumber').value)
         console.log(process.cwd(), __dirname, __filename, process)
         console.log(this.getExportFunctionList('d:/Math.dll'))
       } catch (err) {
