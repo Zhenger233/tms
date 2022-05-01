@@ -21,7 +21,7 @@
               >{{ item }}</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
-          <el-submenu index="2">
+          <!-- <el-submenu index="2">
             <template #title><i class="el-icon-rank"></i>CTRL FLOW</template>
             <el-menu-item-group
               v-for="(item, index) in insertItemList[1]"
@@ -32,7 +32,7 @@
                 :index="'2-' + index"
               >{{ item }}</el-menu-item>
             </el-menu-item-group>
-          </el-submenu>
+          </el-submenu> -->
           <el-submenu index="3">
             <template #title><i class="el-icon-menu"></i>OTHERS</template>
             <el-menu-item-group
@@ -271,7 +271,7 @@
         </el-main>
       </el-container>
       <el-container style="border: 1px solid #eee; margin-right: 0;overscroll-behavior: none;">
-        <el-aside width="400">
+        <el-aside width="500">
           <div style="text-align:center;margin-top: 20px;font-size:20px;bold">
             Variable List
           </div>
@@ -281,7 +281,7 @@
           >
             <el-table-column
               label="name"
-              width="100"
+              width="150"
               align="center"
             >
               <template #default="scope">
@@ -294,7 +294,7 @@
             </el-table-column>
             <el-table-column
               label="type"
-              width="102"
+              width="140"
               align="center"
             >
               <template #default="scope">
@@ -308,9 +308,9 @@
                   v-model="scope.row.type"
                   :fetch-suggestions="querySearchValType"
                   clearable
-                  class="inline-input"
                   placeholder="int"
                   @select="handleSelect"
+                  @input="valChange(scope.row)"
                 />
               </template>
             </el-table-column>
@@ -318,7 +318,7 @@
               prop="value"
               label="value"
               align="center"
-              width="150"
+              width="170"
             >
               <template #default="scope">
                 <el-input
@@ -369,6 +369,7 @@ const DoubleArray = ArrayType('double')
 const { ipcRenderer } = require('electron')
 const fs = require('fs')
 const xlsx = require('node-xlsx')
+const uuid = require('uuid')
 
 const IMAGE_NT_OPTIONAL_HDR32_MAGIC = 0x10b
 const IMAGE_DIRECTORY_ENTRY_EXPORT = 0
@@ -621,6 +622,7 @@ export default {
         })
         .catch(err => {
           console.log(err)
+          alert('导入失败\n', err)
         })
     },
     exportSeqFile () {
@@ -640,6 +642,7 @@ export default {
         })
         .catch(err => {
           console.log(err)
+          alert('导出失败\n', err)
         })
     },
     deleteVal (varIndex) {
@@ -648,12 +651,7 @@ export default {
     },
     insertMessagePop () {
       this.seqData.push({
-        id:
-          'MessagePop' +
-          this.seqData.length +
-          this.messageType +
-          this.messageTitle +
-          new Date().getTime(),
+        id: uuid(),
         name: this.messageType + this.seqData.length,
         type: 'MessagePop',
         result: -1,
@@ -884,7 +882,7 @@ export default {
           break
         }
         default: {
-          console.log('default')
+          console.log('default', row.type)
           // change input box border color to red
           break
         }
@@ -1248,12 +1246,7 @@ export default {
     insertItemRun (functionName) {
       const functionType = this.insertItemList[0][this.menuIndex]
       this.seqData.push({
-        id:
-          this.words +
-          functionName +
-          functionType +
-          this.seqData.length +
-          new Date().getTime(),
+        id: uuid(), // this.words+functionName+functionType+this.seqData.length +new Date().getTime(),
         name: functionName + this.seqData.length,
         type: functionType,
         result: -1,
@@ -1275,12 +1268,7 @@ export default {
         seqListCombination.push(item)
       }
       this.seqData.push({
-        id:
-          'combination' +
-          this.seqData.length +
-          seqNameList.map(i => i[0]).join('') +
-          seqListCombination.length +
-          new Date().getTime(),
+        id: uuid(),
         name: 'seqCombination' + this.seqData.length,
         type: 'Combination',
         result: -1,
@@ -1297,7 +1285,7 @@ export default {
       const idList = this.multipleSelection.map(i => i.id)
       idList.forEach(id => {
         console.log(id)
-        this.seqData = this.$seqData.filter(item => item.id !== id)
+        this.seqData = this.seqData.filter(item => item.id !== id)
       })
     },
     getDosHeader (buffer) {

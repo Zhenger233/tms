@@ -5,8 +5,10 @@
 find mu_visual_cpp_build_tools_2015_update_3_x64.iso and install.
 
 ```
-npm i @vue/cli ffi-napi@2.5.0 ref-napi electron-rebuild ref-array-napi
-vue add electron-build element-plus
+npm install -g @vue/cli-init
+vue init simulatedgreg/electron-vue tms
+npm i @vue/cli ffi-napi@2.5.0 ref-napi electron-rebuild ref-array-napi ref-struct-napi
+vue add electron-builder element-plus
 ```
 
 ```shell
@@ -84,9 +86,9 @@ dll edit and call
 
 ~~导出序列文件时保存变量~~
 
-变量类型下拉框
+~~变量类型下拉框~~
 
-变量列表无限拉长
+~~变量列表无限拉长~~
 
 序列复制粘贴
 
@@ -95,7 +97,3 @@ dll edit and call
 程序使用指引
 
 图标
-
-~~类型输入提示（不存在的类型显示为红色）~~
-
-标准输入输出问题？
